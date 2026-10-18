@@ -65,7 +65,7 @@
 
 ```powershell
 dsh --profile grok-byapi-test --from-default-profile web --dump-config
-dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git@v0.2.0-alpha.1"
+dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0-alpha.1"
 ```
 
 `--dump-config` 会基于默认 profile 创建新 profile、打印合并后的配置，不启动服务。`dsh plugin add` 会把插件记进该 profile 的 `dsh.profile.bundles`，不需要手动改 YAML。仓库没有 `prepare` / `postinstall` 脚本，安装期不执行构建代码，也不需要 `allowBuilds`。

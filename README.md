@@ -65,7 +65,7 @@ Not implemented yet: image editing, video editing or extension, automatic backgr
 
 ```powershell
 dsh --profile grok-byapi-test --from-default-profile web --dump-config
-dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git@v0.2.0-alpha.1"
+dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0-alpha.1"
 ```
 
 `--dump-config` creates the profile from your default profile and prints the merged configuration without starting a server. `dsh plugin add` records the bundle in that profile — no manual YAML edit. The package has no `prepare` or `postinstall` script, so installation runs no build code and needs no `allowBuilds` entry.
