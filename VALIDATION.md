@@ -6,7 +6,7 @@
 
 - 客户端 UI 接入 dsh 官方 locale 服务：设置页/工具卡片/播放器/只读提供商页随宿主语言切换。隔离 Web profile 实机核对：英文界面（en-US）显示 Connection / API address / API key / Get models / Chat models / Media models，中文界面（zh-CN）显示对应中文；两套文案由 106 个 key 的中英字典提供，切换语言无需刷新。README 设置页截图取自英文界面。
 - 删除未使用的 `locale/build/*` 资源与导出；`npm pack` 清单不再包含该目录。
-- devDependencies 的 `@deepseek-ai/dsh-llm` 升级到 `0.2.1-rc.2` 后，宿主侧测试与适配器注册测试全部通过。
+- 尝试把 devDependencies 的 `@deepseek-ai/dsh-llm` 升到 `0.2.1-rc.2` 会与 SDK 传递依赖的 peer 范围冲突、`npm ci` 失败，已回退 `0.2.0-rc.2`；运行时兼容仍由 `engines.dsh` 控制，63 项测试与 `npm ci` 全绿。
 - 发布工作流新增 `market/index.json` 自动更新（创建 Release 后用 tag commit 更新并推送回 `main`）。
 
 ## 0.2.0-alpha.1 复核（2026-10-17 ~ 2026-10-18）
