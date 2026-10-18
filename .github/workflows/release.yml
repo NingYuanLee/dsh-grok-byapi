@@ -44,11 +44,18 @@ jobs:
           VERSION="$(node -p "require('./package.json').version")"
           FLAGS=()
           case "$VERSION" in *-*) FLAGS+=(--prerelease) ;; esac
-          gh release create "$GITHUB_REF_NAME" \
-            --title "dsh-grok-byapi $GITHUB_REF_NAME" \
-            --generate-notes \
-            "${FLAGS[@]}" \
-            "dsh-grok-byapi-$VERSION.tgz"
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" \
+              --title "dsh-grok-byapi $GITHUB_REF_NAME" \
+              --generate-notes \
+              "${FLAGS[@]}"
+          gh release upload "$GITHUB_REF_NAME" "dsh-grok-byapi-$VERSION.tgz" --clobber
       - name: Publish to npm when a token is configured
-        if: env.NODE_AUTH_TOKEN != ''
-        run: npm publish --tag alpha
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "NPM_TOKEN is not configured; skipping npm publish."
+            exit 0
+          fi
+          npm publish --tag alpha
