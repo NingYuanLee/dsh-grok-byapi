@@ -58,11 +58,11 @@
       "versions": [
         {
           "version": "0.2.0-alpha.1",
-          "publishTimestamp": 1792320839,
+          "publishTimestamp": 1792321044,
           "source": {
             "type": "git",
             "url": "https://github.com/NingYuanLee/dsh-grok-byapi",
-            "commit": "578cd11db57c3d36cb5de79dda8bc570d9d45a50"
+            "commit": "e15d2753f6854c54857ca604d040d6d2096119cd"
           },
           "engines": {
             "dsh": ">=0.2.0-rc.2 <0.3.0"
