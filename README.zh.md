@@ -94,6 +94,14 @@ dsh --profile grok-byapi-test --no-open
 
 建议先把插件放在独立 profile 里试，满意后再进日常 profile，这样提供方、工具和设置不会混进日常环境。需要完全隔离时，把 `DSH_HOME` 指到临时目录。
 
+**从 DSH Discover 标签页安装（实验功能）**：在 插件 → Experimental plugins 打开 **Custom plugin markets**，进入 **Discover → Add index source**，填入：
+
+```text
+https://raw.githubusercontent.com/NingYuanLee/dsh-grok-byapi/main/market/index.json
+```
+
+索引把本版本固定到一个 Git commit，从 Discover 安装与上面的 git 命令等价。DSH 官方没有插件市场；这是自发布的 [format 1](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/plugin-market.md) 索引。
+
 ## 更新与卸载
 
 固定 tag 的 git 安装：先移除再装新 tag；本地源码安装：`git pull` 后 `npm install --ignore-scripts`；tarball 安装：移除后装新的 `.tgz`。以上操作完成后重启 dsh。

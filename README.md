@@ -94,6 +94,14 @@ dsh --profile grok-byapi-test --no-open
 
 Keep the plugin in a dedicated profile until you are satisfied; this keeps the provider, tools, and settings out of your daily environment. For a fully isolated trial, point `DSH_HOME` at a scratch directory.
 
+**From the DSH Discover tab (experimental):** turn on **Custom plugin markets** under Plugins → Experimental plugins, open **Discover → Add index source**, and add:
+
+```text
+https://raw.githubusercontent.com/NingYuanLee/dsh-grok-byapi/main/market/index.json
+```
+
+The index lists this release as a pinned Git commit, so installing it from Discover is the same install as the git command above. DSH ships no official market; this is a self-published [format 1](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/plugin-market.md) index.
+
 ## Update and uninstall
 
 Updating a tag-pinned git install means removing it and adding the new tag; local installs update with `git pull` and `npm install --ignore-scripts`; tarball installs are removed and replaced with the new `.tgz`. Restart dsh afterwards.
