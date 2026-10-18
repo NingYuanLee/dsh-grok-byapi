@@ -16,10 +16,19 @@ export async function apply(ctx) {
   if (!runtime) throw new Error('Grok Imagine 需要先启用 Grok ByAPI');
   const signalOf = exec => AbortSignal.any([exec.signal, runtime.abort?.signal].filter(Boolean));
   const disposers = [];
+  const factories = [];
+  // 描述里的"当前可选模型"来自最新清单，而 defineTool 会把它拍平成字符串，
+  // 所以工具定义每次注册时重建；清单更新后整体换一遍。
   const tool = (toolName, description, parameters, run) => {
-    const definition = { name: toolName, parameters, output: jsonOutput, async execute(args, exec) { return run(args, exec); } };
-    Object.defineProperty(definition, 'description', { enumerable: true, get: () => (typeof description === 'function' ? description() : description) });
-    disposers.push(ctx.tools.register(defineTool(definition)));
+    factories.push(() => {
+      const definition = { name: toolName, parameters, output: jsonOutput, async execute(args, exec) { return run(args, exec); } };
+      Object.defineProperty(definition, 'description', { enumerable: true, get: () => (typeof description === 'function' ? description() : description) });
+      return ctx.tools.register(defineTool(definition));
+    });
+  };
+  const registerTools = () => {
+    for (const dispose of disposers.splice(0)) { try { dispose(); } catch { /* 已注销 */ } }
+    for (const build of factories) disposers.push(build());
   };
   const idParam = { task_id: { type: 'string', required: true, description: '任务 ID：由 grok_generate_video 或 grok_generate_image / grok_speak 返回的 id 字段（UUID）' } };
 
@@ -57,5 +66,11 @@ export async function apply(ctx) {
   tool('grok_media_list', '列出本轮会话创建过的所有媒体任务。无参数。',
     {}, async (_args, exec) => (await runtime.manager()).list(ownerOf(exec)));
 
-  ctx.on('dispose', () => { for (const dispose of disposers.splice(0)) { try { dispose(); } catch { /* 已注销 */ } } });
+  registerTools();
+  // 聊天行可能还没做完首轮发现就挂上了本行：清单一到就重建描述。
+  const stopRefreshHook = runtime.onRefreshed?.(registerTools);
+  ctx.on('dispose', () => {
+    stopRefreshHook?.();
+    for (const dispose of disposers.splice(0)) { try { dispose(); } catch { /* 已注销 */ } }
+  });
 }

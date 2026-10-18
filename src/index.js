@@ -214,6 +214,10 @@ export async function apply(ctx, config) {
     if (closed) return;
     for (const dispose of toolDisposers.splice(0)) { try { dispose(); } catch { /* 已注销 */ } }
     for (const build of toolFactories) toolDisposers.push(ctx.tools.register(build()));
+    // dsh-grok-imagine 的媒体工具也用这份清单拼描述，由它自己挂在这里重建。
+    for (const notify of [...refreshedListeners]) {
+      try { notify(); } catch (error) { ctx.logger?.warn?.('grok-byapi: 媒体工具重建失败 ' + (error?.message || error)); }
+    }
   }
   // 工具描述就是模型唯一能看到的"接口文档"：写清什么时候用、每个参数的含义与边界、
   // 完整调用顺序、失败后怎么办。描述里的模型 ID 都来自当前发现结果，不写死具体名字。
@@ -225,8 +229,13 @@ export async function apply(ctx, config) {
   const runtime = {
     abort, connection, mediaConfig, catalog: () => catalog, lastError: () => lastError,
     refresh, verifyKey, discover, manager, requireModel, describeModels,
+    // 首轮发现不再阻塞 apply()：需要等清单落定的一方（测试、宿主的准备流程）await 这个 promise。
+    ready: null,
   };
   new GrokRuntime(ctx, runtime);
+  // defineTool 会把工具描述快照成字符串，清单变化后媒体工具必须重建，所以这里提供订阅点。
+  const refreshedListeners = new Set();
+  runtime.onRefreshed = listener => { refreshedListeners.add(listener); return () => { refreshedListeners.delete(listener); }; };
 
   tool('grok_models', '获取/刷新 Grok 模型清单，按能力分组返回。调用场景：用户要换模型、要生图/生视频/生音频、或刚改过插件设置（地址、密钥、模型参数）。'
     + '返回的 chat 类模型可用于对话，image/video/speech 类分别是生成图片/视频/音频的可用模型 ID；调用生成工具时应把这里返回的 ID 原样传给 model 参数，不要自行编造或改写模型名。'
@@ -251,5 +260,6 @@ export async function apply(ctx, config) {
     for (const dispose of toolDisposers.splice(0)) { try { dispose(); } catch { /* 已注销 */ } }
   });
   // A missing credential must not prevent installation or settings repair.
-  await refresh().catch(() => {});
+  // Activation stays non-blocking: the first discovery and its tool re-registration settle in the background.
+  runtime.ready = refresh().catch(() => {});
 }

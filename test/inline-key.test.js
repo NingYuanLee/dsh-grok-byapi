@@ -25,6 +25,7 @@ function serveModels() {
 }
 
 function host(tools, discoveries, providers) {
+  const provided = new Map();
   return {
     credentials: { resolve: async ref => (ref === 'GROK_ALL_API_KEY' ? { value: BAD } : undefined) },
     llm: {
@@ -38,7 +39,8 @@ function host(tools, discoveries, providers) {
     get: () => undefined,
     fiber: { entry: { options: { id: 'grok-byapi' } } },
     plugin(Plugin, ...args) { return new Plugin(this, ...args); },
-    reflect: { provide() {} },
+    reflect: { provide(name, value) { provided.set(name, value); } },
+    provided,
   };
 }
 
@@ -55,7 +57,7 @@ async function mount(t, connection) {
   const snapshot = { connection: { baseURL, apiKeyEnv: 'GROK_ALL_API_KEY', timeoutMs: 5000, verify: false, ...connection }, media: {} };
   const configProxy = { connection: { get: () => snapshot.connection }, media: { get: () => ({ dataDir: '' }) }, modelOverrides: { get: () => [] } };
   await apply(ctx, configProxy);
-  return { tools, seen, discoveries, providers, baseURL };
+  return { tools, seen, discoveries, providers, baseURL, runtime: ctx.provided.get('grok-byapi')?.runtime };
 }
 
 test('明文 apiKey 优先于凭据引用，并按真实密钥请求', async t => {
@@ -77,9 +79,11 @@ test('安装后向模型页声明 Grok 提供商', async t => {
 });
 
 test('设置页发现使用草稿地址和一次性密钥，不改用已存凭据', async t => {
-  const { discoveries, baseURL, seen } = await mount(t, { apiKey: BAD });
+  const { discoveries, baseURL, seen, runtime } = await mount(t, { apiKey: BAD });
   const discover = discoveries.get('grok-byapi');
   assert.equal(typeof discover, 'function');
+  // 后台首轮发现会用已保存的凭据请求一次 /models；等它落定再取基线，免得把它的请求算进本次发现。
+  await runtime.ready;
   const before = seen.length;
   const models = await discover({ baseURL, apiKey: GOOD, api: 'openai-completions' });
   assert.deepEqual(models.map(model => model.id), ['grok-4.7']);
@@ -98,15 +102,48 @@ test('留空 apiKey 时回退到凭据引用', async t => {
   globalThis.fetch = async (url, init) => { seen.push(init?.headers?.authorization); return orig(url, init); };
   t.after(() => { globalThis.fetch = orig; });
   const tools = new Map();
+  const provided = new Map();
   const ctx = {
     credentials: { resolve: async ref => (ref === 'GROK_ALL_API_KEY' ? { value: BAD } : undefined) },
     llm: { registerAdapter: () => () => {}, registerConfigurableProviders: () => ({ replace() {} }), registerModelDiscovery: () => () => {} },
     tools: { register: tool => { tools.set(tool.name, tool); return () => {}; } },
     logger: { warn: () => {}, info: () => {} },
-    on: () => () => {}, get: () => undefined, fiber: {}, reflect: { provide() {} },
+    on: () => () => {}, get: () => undefined, fiber: {}, reflect: { provide(name, value) { provided.set(name, value); } },
   };
   await apply(ctx, { connection: { get: () => ({ baseURL, apiKeyEnv: 'GROK_ALL_API_KEY', timeoutMs: 5000, verify: false }) }, media: { get: () => ({ dataDir: '' }) }, modelOverrides: { get: () => [] } });
+  // 激活不再等待首轮发现：显式等它落定，再断言回退用的是凭据里的密钥。
+  await provided.get('grok-byapi').runtime.ready;
   assert.ok(seen.includes('Bearer ' + BAD), '应回退到凭据值：' + JSON.stringify(seen));
+});
+
+test('首轮发现不阻塞激活：apply 先返回，ready 落定后才填清单', async t => {
+  // 用一个手动放行的服务器卡住 /v1/models：apply 若还在等首轮发现，这个测试会一直挂到超时。
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const server = createServer(async (req, res) => {
+    await gate;
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ data: [{ id: 'grok-4.7', created: 1, object: 'model', owned_by: 'xai' }] }));
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  t.after(() => server.close());
+  const baseURL = 'http://127.0.0.1:' + server.address().port + '/v1';
+  const provided = new Map();
+  const ctx = {
+    credentials: { resolve: async () => ({ value: 'test-key' }) },
+    llm: { registerAdapter: () => () => {}, registerConfigurableProviders: () => ({ replace() {} }), registerModelDiscovery: () => () => {} },
+    tools: { register: () => () => {} },
+    logger: { warn: () => {}, info: () => {} },
+    on: () => () => {}, get: () => undefined, fiber: {}, reflect: { provide(name, value) { provided.set(name, value); } },
+  };
+  await apply(ctx, { connection: { get: () => ({ baseURL, apiKeyEnv: 'GROK_ALL_API_KEY', timeoutMs: 5000, verify: false }) }, media: { get: () => ({ dataDir: '' }) }, modelOverrides: { get: () => [] } });
+  const runtime = provided.get('grok-byapi').runtime;
+  assert.ok(runtime, '激活后应能拿到运行时');
+  assert.equal(runtime.catalog().length, 0, 'apply 返回时首轮发现应仍在后台进行');
+  release();
+  await runtime.ready;
+  assert.deepEqual(runtime.catalog().map(model => model.id), ['grok-4.7']);
 });
 
 test('密钥自检：错的密钥报认证失败，对的密钥通过', async t => {

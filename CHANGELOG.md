@@ -10,7 +10,8 @@
 - 官方依赖统一到 0.2.1 基线：`@deepseek-ai/dsh-credentials`、`@deepseek-ai/dsh-llm-pi-ai`、`@deepseek-ai/dsh-tools` 的 peer 范围改为 `>=0.2.1-0 <0.3.0`；开发依赖 `@deepseek-ai/dsh-llm` 同步放宽为同一范围；`@deepseek-ai/cordis` 与 `@deepseek-ai/schemastery` 保持 `~4.0.4` / `~3.18.4`。
 - 移除自建市场索引：删除 `market/index.json`、`scripts/validate-market.mjs`、`scripts/update-market.mjs`、`validate:market` 脚本、`@deepseek-ai/dsh-plugin-market-index` 开发依赖，以及发布流程里的索引刷新步骤；README 不再提供 Discover 索引安装方式。
 - 发布包 `files` 移除 `PLAN.md`、`ROADMAP.md`、`VALIDATION.md`（文件仍保留在仓库），并保留 `SECURITY.md`、中英文 README、`LICENSE`、`CHANGELOG.md`、`locale` 与 `icon.svg`。
-- CI 改为 Node 22.19 / 24 双版本与 Linux / Windows 双平台矩阵；自动测试增至 64 项。
+- 首轮模型发现改为后台进行：插件激活不再等待 `/models` 请求，慢网络或密钥缺失都不会拖住安装与设置修复；发现结果到达后聊天与媒体工具的描述同步重建。
+- CI 改为 Node 22.19 / 24 双版本与 Linux / Windows 双平台矩阵；自动测试增至 65 项。
 
 ## 0.2.0-alpha.2 — 2026-10-18
 
