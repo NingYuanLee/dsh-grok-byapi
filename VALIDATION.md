@@ -1,14 +1,19 @@
 # 验收记录
 
-本文件分批记录：`0.1.0-alpha.1` 于 2026-10-16 在 Windows、Node.js 24、DeepSeek Harness `0.2.0-rc.2`、CLIProxyAPI `v8.0.30` 上完成端到端验收；`0.2.0-alpha.1` 于 2026-10-17 补充自动化回归与 dsh `0.2.1-rc.1` 运行环境复核。
+本文件分批记录：`0.1.0-alpha.1` 于 2026-10-16 在 Windows、Node.js 24、DeepSeek Harness `0.2.0-rc.2`、CLIProxyAPI `v8.0.30` 上完成端到端验收；`0.2.0-alpha.1` 于 2026-10-17 补充自动化回归与 dsh `0.2.1-rc.1` 运行环境复核，2026-10-18 补充设置页 GUI 实机验收。
 
-## 0.2.0-alpha.1 复核（2026-10-17）
+## 0.2.0-alpha.1 复核（2026-10-17 ~ 2026-10-18）
 
-- Windows + Node.js 24：50 项自动测试全部通过，`npm run check` 通过，`npm run build` 产物与提交内容一致（CI 的 `git diff --exit-code -- lib/client.js` 门禁成立）。
+- Windows + Node.js 24：51 项自动测试全部通过，`npm run check` 通过，`npm run build` 产物与提交内容一致（CI 的 `git diff --exit-code -- lib/client.js` 门禁成立）。
 - dsh `0.2.1-rc.1` 桌面 profile（本地 link 安装）：插件正常加载，`grok_models` 以 `verify_key=true` 返回 20 个模型，`/models` 返回 HTTP 200；聊天提供方注册与模型发现在该版本可用。
 - 设置页保存对话模型会下发配置操作 `unset`；运行时 dsh-settings `0.2.1-rc.1` 的 `applyPathOp` 已实现该操作，清理旧 `media.defaultModel` 有效。
-- 本版设置页交互改动（删除按钮、媒体模型即选即用、移除默认模型）有单元测试与静态核查；当前会话没有浏览器工具，未在 GUI 中实机复测。
-- 未重新做端到端媒体生成与播放验收，仍引用下方 `0.1.0-alpha.1` 记录。
+- GUI 实机验收（2026-10-18，chrome-devtools 浏览器工具，独立 CLI profile 复制 desktop 插件配置，不改动真实配置）：
+  - 插件详情页正常渲染：显示 `v0.2.0-alpha.1`、连接字段、20 个模型发现成功、对话模型表格、媒体模型下拉，2 个组件运行中。
+  - 对话模型删行后保存：配置 `modelOverrides` 真实移除该模型，表格同步减少。
+  - 媒体模型：选中 ID 即启用（无独立「启用」勾选框），保存后三个媒体模型保留在配置中。
+  - 清空 API 地址：输入框回显默认地址；保存地址成功并写入默认地址。
+- GUI 验收发现并修复真实 bug：详情页保存把 `remote.settings.mutate` 返回的 `{ ok, value: namespace view }` 当成配置节写入 `loaded`，导致保存后媒体模型回退显示「不使用」、revision 不前进、下一次保存报配置冲突。`src/client.js` 的 `commit()` 已解包 namespace view，并新增回归测试。
+- 未复测：端到端媒体生成与播放（仍引用下方 `0.1.0-alpha.1` 记录）；桌面 App 内嵌窗口未直接操作，采用同配置独立 Web profile 验收。
 
 ## 0.1.0-alpha.1 已通过（2026-10-16）
 

@@ -96,7 +96,7 @@ MIT，见 [LICENSE](LICENSE)。Copyright (c) 2026 NingYuanLee。
 ## 开发与社区
 
 ```powershell
-npm test        # 50 项自动测试
+npm test        # 51 项自动测试
 npm run check
 npm run build   # 由 src/client.js 重新生成 lib/client.js
 npm pack --dry-run

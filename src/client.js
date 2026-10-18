@@ -428,9 +428,13 @@ export function GrokSettings(props) {
     setBusy(true); setMessage('');
     try {
       const landed = form ? await form.mutate(ops, expected) : await remote.settings.mutate(SETTINGS_NS, ops, expected);
-      const result = form ? landed : (landed?.ok === false ? false : landed);
-      if (result === false) { setMessage('未保存，请检查权限、配置来源或是否被其他窗口更新。'); return false; }
-      if (!form && result?.value) { setLoaded(result.value); setRevision(result.revision ?? revision); }
+      if (form ? landed === false : landed?.ok === false) { setMessage('未保存，请检查权限、配置来源或是否被其他窗口更新。'); return false; }
+      if (!form) {
+        // 详情页的远程调用返回 { ok, value: { value: 配置节, revision, … } } 这一层 namespace view。
+        // 把 view 当配置节会让媒体模型回退成「不使用」，并让下一次保存继续用旧 revision 撞冲突。
+        const view = landed?.value;
+        if (view?.value) { setLoaded(view.value); setRevision(view.revision ?? revision); }
+      }
       setDraft(null);
       setMessage(note);
       return true;

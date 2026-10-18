@@ -203,6 +203,53 @@ test('插件详情页等配置读完再自动获取，不用空地址', async ()
   assert.doesNotMatch(statusText(runtime.renders.at(-1)), /provider route/);
 });
 
+test('详情页保存解包 namespace view：媒体模型不回退，下一次保存用新 revision', async () => {
+  const Client = loadClient();
+  const runtime = Client.runtime;
+  runtime.cursor = 0; runtime.hooks = []; runtime.effects = []; runtime.refs = {};
+  const calls = [];
+  const baseValue = {
+    connection: { baseURL: 'http://127.0.0.1:8317/v1', api: 'openai-responses', timeoutMs: 60000 },
+    media: { imageModel: 'grok-imagine-image-2.0', videoModel: '', speechModel: '' },
+    modelOverrides: [
+      { id: 'grok-4.7', displayName: 'grok-4.7', imageSupported: true, contextWindow: 500000, maxTokens: 32768, reasoningEfforts: ['high'] },
+    ],
+  };
+  const remote = {
+    settings: {
+      describe: async () => ({ ok: true, value: { namespaces: [{ ns: 'grok-byapi', value: baseValue, revision: 3 }] } }),
+      mutate: async (ns, ops, revision) => {
+        calls.push({ ns, ops, revision });
+        const overrides = ops.find(op => op.path[0] === 'modelOverrides');
+        const nextValue = { ...baseValue, modelOverrides: overrides ? overrides.value : baseValue.modelOverrides };
+        return { ok: true, value: { ns, value: nextValue, revision: revision + 1 } };
+      },
+    },
+    credentials: { describe: async () => ({ ok: true, value: { GROK_ALL_API_KEY: { configured: true } } }), set: async () => ({ ok: true }) },
+    llm: { discoverModels: async () => ({ ok: true, value: DISCOVERED }) },
+  };
+  runtime.render = () => { runtime.cursor = 0; runtime.effects = []; return Client.exports.GrokSettings({ view: 'page', remote }); };
+  runtime.renders = [runtime.render()];
+  for (const effect of runtime.effects.slice()) effect();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const current = () => runtime.renders.at(-1);
+  openChat(current);
+  buttonByText(current(), '媒体模型').props.onClick();
+  assert.equal(byLabel(current(), '生成图片').props.value, 'grok-imagine-image-2.0');
+  byLabel(current(), '删除第 1 行').props.onClick();
+  await buttonByText(current(), '保存对话模型').props.onClick();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].revision, 3);
+  assert.deepEqual(calls[0].ops.find(op => op.path[0] === 'modelOverrides').value, []);
+  assert.equal(byLabel(current(), '生成图片').props.value, 'grok-imagine-image-2.0', '保存后媒体模型不能回退成不使用');
+  assert.match(statusText(current()), /已保存 0 条对话模型/);
+  await buttonByText(current(), '保存媒体模型').props.onClick();
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].revision, 4, '第二次保存必须用保存后返回的 revision');
+  assert.equal(calls[1].ops.find(op => op.path[0] === 'media').value.imageModel, 'grok-imagine-image-2.0');
+  assert.match(statusText(current()), /媒体模型已保存/);
+});
+
 test('宿主拒绝空地址时不把英文原文露出来', async () => {
   const Client = loadClient();
   const current = mount(Client, { discover: async () => ({ ok: false, error: { message: 'model discovery needs a provider route or a baseURL' } }) });
