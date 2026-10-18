@@ -2,9 +2,17 @@
 
 本文记录面向使用者的变更。版本兼容范围与已验收能力见 [VALIDATION.md](VALIDATION.md)。
 
-## 0.2.0-alpha.1 — 2026-10-17（未发布）
+## 0.2.0-alpha.1 — 2026-10-18
 
-设置页交互与配置调整，含一处配置键废弃：
+首个可从公开仓库安装的预览版。设置页交互与配置调整，含一处配置键废弃；本轮同时补齐插件展示元数据、双语文档、GitHub Release 与社区收录所需文件：
+
+- 插件展示元数据：`locale/en.json` 与 `package.json` 改为英文标题与描述；新增 `assets/imagine.svg` 并导出 `./imagine/icon`，`dsh-grok-imagine` 组件行不再缺图。
+- 打包修正：`files` 由 `locale/*.json` 改为 `locale`，npm/Git 安装包含子路径的 `locale/imagine/*.json`；补入 `docs/assets`、`screenshots.json`、`SECURITY.md` 相关文件。
+- README 重写为中英双语（英文主文档 + `README.zh.md`），加入 banner、截图、兼容矩阵、安装/更新/卸载、配置、安全与隐私、常见故障与安装成功判定。
+- 新增 `SECURITY.md`、Issue/PR 模板、`screenshots.json`、`market/index.json` 市场索引（format 1）与 `npm run validate:market` 校验脚本。
+- 新增 tag 发布工作流：校验 tag 与版本一致、跑测试与构建、生成 GitHub Release 并附加 `npm pack` 产物；配置 `NPM_TOKEN` 后同时发布 npm。
+- CI 增加市场索引校验；仓库 topic 补充 `cordis`、`llm-provider`、`image-generation`、`video-generation`、`text-to-speech`。
+- 设置页交互与配置调整：
 
 - 对话模型表格就是聊天选择器名单：删掉的行保存后不再被加回；「添加」移到表格下方，与「保存对话模型」同排。
 - 移除每行的「默认模型」单选列与 `media.defaultModel` 配置键。旧配置里残留的该键启动时被忽略，保存时自动 `unset`/删除。

@@ -2,7 +2,7 @@
   "name": "dsh-grok-byapi",
   "version": "0.2.0-alpha.1",
   "displayName": "Grok ByAPI",
-  "description": "通过api接入grok模型",
+  "description": "Native Grok for DeepSeek Harness: chat provider, image and video generation, TTS, and durable local media tasks over any OpenAI-compatible Grok gateway.",
   "license": "MIT",
   "author": "NingYuanLee",
   "type": "module",
@@ -14,19 +14,29 @@
     "./client": "./lib/client.js",
     "./locale/*.json": "./locale/*.json",
     "./build/locale/*.json": "./locale/build/*.json",
+    "./icon": "./icon.svg",
+    "./imagine/icon": "./assets/imagine.svg",
     "./imagine/locale/*.json": "./locale/imagine/*.json",
     "./package.json": "./package.json"
   },
   "files": [
     "src",
+    "assets",
     "icon.svg",
     "lib/client.js",
     "scripts/build-client.mjs",
     "cordis.patch.yml",
-    "locale/*.json",
+    "locale",
+    "docs/assets/banner.svg",
+    "docs/assets/showcase.jpg",
+    "docs/assets/screenshot-plugins.jpg",
+    "docs/assets/screenshot-settings.jpg",
+    "screenshots.json",
     "LICENSE",
     "CHANGELOG.md",
     "README.md",
+    "README.zh.md",
+    "SECURITY.md",
     "PLAN.md",
     "ROADMAP.md",
     "VALIDATION.md"
@@ -35,7 +45,8 @@
     "build": "node scripts/build-client.mjs",
     "prepack": "npm run build",
     "test": "node --test test/*.test.js",
-    "check": "node --check src/index.js && node --check src/catalog.js && node --check src/media.js && node --check src/media-entry.js && node --check src/service.js && node --check src/client.js",
+    "validate:market": "node scripts/validate-market.mjs",
+    "check": "node --check src/index.js && node --check src/adapter.js && node --check src/catalog.js && node --check src/media.js && node --check src/media-entry.js && node --check src/service.js && node --check src/client.js && node --check scripts/validate-market.mjs && node --check scripts/build-client.mjs",
     "prepublishOnly": "npm test && npm run check"
   },
   "engines": {
@@ -53,11 +64,16 @@
   "keywords": [
     "dsh-plugin",
     "deepseek-harness",
+    "cordis",
     "grok",
     "xai",
+    "grok-imagine",
+    "llm-provider",
+    "ai-agent",
     "image-generation",
     "video-generation",
-    "tts"
+    "text-to-speech",
+    "openai-compatible"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -86,6 +102,7 @@
   },
   "devDependencies": {
     "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-plugin-market-index": "0.2.1-alpha.4",
     "esbuild": "^0.28.2",
     "react": "^18.3.1"
   },

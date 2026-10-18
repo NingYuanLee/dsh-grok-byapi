@@ -26,4 +26,5 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: git diff --exit-code -- lib/client.js
+      - run: npm run validate:market
       - run: npm pack --dry-run

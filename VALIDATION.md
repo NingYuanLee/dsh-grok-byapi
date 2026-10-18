@@ -13,6 +13,8 @@
   - 媒体模型：选中 ID 即启用（无独立「启用」勾选框），保存后三个媒体模型保留在配置中。
   - 清空 API 地址：输入框回显默认地址；保存地址成功并写入默认地址。
 - GUI 验收发现并修复真实 bug：详情页保存把 `remote.settings.mutate` 返回的 `{ ok, value: namespace view }` 当成配置节写入 `loaded`，导致保存后媒体模型回退显示「不使用」、revision 不前进、下一次保存报配置冲突。`src/client.js` 的 `commit()` 已解包 namespace view，并新增回归测试。
+- 2026-10-18 在桌面 dsh `0.2.1-rc.2` 运行环境中复核：插件正常加载，`grok_models`（`verify_key=true`）返回当前网关模型清单，`grok_generate_image` 以显式 image 模型真实生成并保存 1 张 JPEG（用于 README 展示素材）。`engines.dsh` 与 0.2.1 预发布版本在 dsh 的 `includePrerelease` 比较下匹配。
+- README 截图来自隔离 DSH_HOME 的独立 Web profile（英文界面）：插件页显示 `Grok ByAPI` 已安装（英文描述、新图标）与两个组件 `grok-byapi`、`dsh-grok-imagine` 均为 Running；亮/暗主题下图标均可见。设置页表单文案本轮仍为中文（客户端 UI 尚未接入 locale 服务，列入待办）。
 - 未复测：端到端媒体生成与播放（仍引用下方 `0.1.0-alpha.1` 记录）；桌面 App 内嵌窗口未直接操作，采用同配置独立 Web profile 验收。
 
 ## 0.1.0-alpha.1 已通过（2026-10-16）
