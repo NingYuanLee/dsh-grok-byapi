@@ -46,7 +46,10 @@ test('official adapter preserves tool call roundtrip and credential reference', 
 });
 
 test('Responses 不带 Chat Completions 的兼容字段，否则模型列表是空的', async () => {
-  const ctx = { fiber: {}, logger: console, get: () => undefined };
+  // 0.2.1 resolves the route credential before listing models; supply one so the
+  // assertion still exercises the compat gate instead of the missing-credential path.
+  const credentials = { resolve: async ref => ref === 'TEST_GROK_KEY' ? { value: 'test-secret' } : undefined, readRecord: async () => undefined, listRecords: async () => [] };
+  const ctx = { fiber: {}, logger: console, get: name => name === 'credentials' ? credentials : undefined };
   const models = [{ id: 'grok-4.7', contextWindow: 500000, maxTokens: 128, input: ['text'] }];
   const dropped = buildChatAdapter(ctx, { api: 'openai-responses', baseURL: 'http://127.0.0.1:8317/v1', apiKeyEnv: 'TEST_GROK_KEY', models, compat: { thinkingFormat: 'openai', maxTokensField: 'max_tokens' } });
   assert.deepEqual(await dropped.listModels('xAI-CLIProxyAPI'), []);

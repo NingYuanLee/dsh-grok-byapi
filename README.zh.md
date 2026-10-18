@@ -50,8 +50,8 @@
 
 | 组件 | 要求 | 已验证 |
 | --- | --- | --- |
-| dsh | 由 `engines.dsh` 声明 `>=0.2.0-rc.2 <0.3.0` | `0.2.0-rc.2` 端到端（聊天、图片、视频、TTS、播放）；`0.2.1-rc.1` 加载、模型发现、设置页；`0.2.1-rc.2` 加载、模型发现、图片工具调用 |
-| Node.js | `>=22.19.0` | Windows + Node 24；CI 在 Linux 与 Windows 上用 Node 24 |
+| dsh | 由 `engines.dsh` 声明 `>=0.2.1-rc.2 <0.3.0-0` | `0.2.1-rc.2` 端到端（聊天、图片、视频、TTS、播放） |
+| Node.js | `>=22.19.0` | Windows + Node 24；CI 在 Linux 与 Windows 上用 Node 22.19 与 24 |
 | 网关 | OpenAI 兼容 `/v1` 端点；推荐 CLIProxyAPI | CLIProxyAPI v8.0.30 |
 | 其他 dsh 0.2.x | 在 `engines.dsh` 范围内 | 未逐版验证 |
 
@@ -93,14 +93,6 @@ dsh --profile grok-byapi-test --no-open
 ```
 
 建议先把插件放在独立 profile 里试，满意后再进日常 profile，这样提供方、工具和设置不会混进日常环境。需要完全隔离时，把 `DSH_HOME` 指到临时目录。
-
-**从 DSH Discover 标签页安装（实验功能）**：在 插件 → Experimental plugins 打开 **Custom plugin markets**，进入 **Discover → Add index source**，填入：
-
-```text
-https://raw.githubusercontent.com/NingYuanLee/dsh-grok-byapi/main/market/index.json
-```
-
-索引把本版本固定到一个 Git commit，从 Discover 安装与上面的 git 命令等价。DSH 官方没有插件市场；这是自发布的 [format 1](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/plugin-market.md) 索引。
 
 ## 更新与卸载
 
@@ -177,7 +169,7 @@ dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 | 现象 | 处理 |
 | --- | --- |
 | `dsh plugin add` 失败或报 404 | npm 尚未发布，改用上面的 git 或 tarball 方式。 |
-| 插件列表里有，但加载不成功 | dsh 不在 `>=0.2.0-rc.2 <0.3.0` 范围内，升级到 0.2.x 构建。 |
+| 插件列表里有，但加载不成功 | dsh 不在 `>=0.2.1-rc.2 <0.3.0-0` 范围内，升级到 0.2.x 构建。 |
 | 设置页报 401 或 403 | 密钥或基础地址不对，重新保存密钥并检查 `/v1` 后缀。 |
 | 连接被拒或超时 | 网关没启动或不可达；`127.0.0.1` 指运行 dsh 的电脑。 |
 | 选择器里没有 Grok 模型 | `/models` 没有返回可判定为聊天的模型；刷新 `grok_models` 并添加覆盖。 |
@@ -191,14 +183,13 @@ dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 
 ```bash
 npm install --ignore-scripts
-npm test             # 63 项自动测试
+npm test             # 64 项自动测试
 npm run check        # 源文件语法检查
 npm run build        # 由 src/client.js 重新生成 lib/client.js
-npm run validate:market
 npm pack --dry-run
 ```
 
-CI（`.github/workflows/ci.yml`）在 Linux 与 Windows 上用 Node 24 运行：安装、测试、语法检查、构建、校验 `lib/client.js` 与构建产物一致、`validate:market`、打包预演。推送 `v*` tag 会触发 `.github/workflows/release.yml`：校验 tag 与 `package.json` 版本一致、重跑检查、把打包产物附到 GitHub Release，并且只在配置了 `NPM_TOKEN` secret 时发布到 npm。npm 发布目前受阻，所以目前以 git / tarball 分发。规划见 [ROADMAP.md](ROADMAP.md)，变更见 [CHANGELOG.md](CHANGELOG.md)。
+CI（`.github/workflows/ci.yml`）在 Linux 与 Windows 上用 Node 22.19 与 24 运行：安装、测试、语法检查、构建、校验 `lib/client.js` 与构建产物一致、打包预演。推送 `v*` tag 会触发 `.github/workflows/release.yml`：校验 tag 与 `package.json` 版本一致、重跑检查、把打包产物附到 GitHub Release，并且只在配置了 `NPM_TOKEN` secret 时发布到 npm。npm 发布目前受阻，所以目前以 git / tarball 分发。规划见 [ROADMAP.md](ROADMAP.md)，变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 社区、许可与免责声明
 

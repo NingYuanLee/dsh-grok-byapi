@@ -50,8 +50,8 @@ Not implemented yet: image editing, video editing or extension, automatic backgr
 
 | Component | Requirement | Verified |
 | --- | --- | --- |
-| dsh | `>=0.2.0-rc.2 <0.3.0` via `engines.dsh` | `0.2.0-rc.2` end to end (chat, image, video, TTS, playback); `0.2.1-rc.1` load, model discovery, settings page; `0.2.1-rc.2` load, model discovery, image tool call |
-| Node.js | `>=22.19.0` | Node 24 on Windows; CI runs Node 24 on Linux and Windows |
+| dsh | `>=0.2.1-rc.2 <0.3.0-0` via `engines.dsh` | `0.2.1-rc.2` end to end (chat, image, video, TTS, playback) |
+| Node.js | `>=22.19.0` | Node 24 on Windows; CI runs Node 22.19 and 24 on Linux and Windows |
 | Gateway | OpenAI-compatible `/v1` endpoint; CLIProxyAPI recommended | CLIProxyAPI v8.0.30 |
 | Other dsh 0.2.x | Inside the `engines.dsh` range | Not individually verified |
 
@@ -93,14 +93,6 @@ dsh --profile grok-byapi-test --no-open
 ```
 
 Keep the plugin in a dedicated profile until you are satisfied; this keeps the provider, tools, and settings out of your daily environment. For a fully isolated trial, point `DSH_HOME` at a scratch directory.
-
-**From the DSH Discover tab (experimental):** turn on **Custom plugin markets** under Plugins → Experimental plugins, open **Discover → Add index source**, and add:
-
-```text
-https://raw.githubusercontent.com/NingYuanLee/dsh-grok-byapi/main/market/index.json
-```
-
-The index lists this release as a pinned Git commit, so installing it from Discover is the same install as the git command above. DSH ships no official market; this is a self-published [format 1](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/plugin-market.md) index.
 
 ## Update and uninstall
 
@@ -177,7 +169,7 @@ Installation is successful when all four checks pass:
 | Symptom | Fix |
 | --- | --- |
 | `dsh plugin add` fails or reports 404 | npm is not published; use the git or tarball path above. |
-| Plugin is listed but does not load | Your dsh is outside `>=0.2.0-rc.2 <0.3.0`. Upgrade to a 0.2.x build. |
+| Plugin is listed but does not load | Your dsh is outside `>=0.2.1-rc.2 <0.3.0-0`. Upgrade to a 0.2.x build. |
 | 401 or 403 in settings | Wrong key or base URL. Re-save the key and check the `/v1` suffix. |
 | Connection refused or timeout | Gateway not running or unreachable; `127.0.0.1` means the dsh host. |
 | No Grok models in the picker | `/models` returned nothing classified as chat; refresh `grok_models` and add overrides. |
@@ -191,14 +183,13 @@ More measured behavior and limits: [VALIDATION.md](VALIDATION.md).
 
 ```bash
 npm install --ignore-scripts
-npm test             # 63 automated tests
+npm test             # 64 automated tests
 npm run check        # syntax checks for the source files
 npm run build        # rebuilds lib/client.js from src/client.js
-npm run validate:market
 npm pack --dry-run
 ```
 
-CI (`.github/workflows/ci.yml`) runs on Linux and Windows with Node 24: install, tests, syntax checks, build, a check that `lib/client.js` matches the build output, `validate:market`, and a pack dry run. Pushing a `v*` tag runs `.github/workflows/release.yml`, which verifies that the tag matches `package.json`, repeats the checks, attaches the packed tarball to a GitHub Release, and publishes to npm only if an `NPM_TOKEN` secret is configured. npm publishing is currently blocked, so releases are git/tarball only. See [ROADMAP.md](ROADMAP.md) for planned work and [CHANGELOG.md](CHANGELOG.md) for changes.
+CI (`.github/workflows/ci.yml`) runs on Linux and Windows with Node 22.19 and 24: install, tests, syntax checks, build, a check that `lib/client.js` matches the build output, and a pack dry run. Pushing a `v*` tag runs `.github/workflows/release.yml`, which verifies that the tag matches `package.json`, repeats the checks, attaches the packed tarball to a GitHub Release, and publishes to npm only if an `NPM_TOKEN` secret is configured. npm publishing is currently blocked, so releases are git/tarball only. See [ROADMAP.md](ROADMAP.md) for planned work and [CHANGELOG.md](CHANGELOG.md) for changes.
 
 ## Community, license, and disclaimer
 

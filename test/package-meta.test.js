@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -58,6 +58,17 @@ test('the bundle patch points at real package specifiers', async () => {
   const manifest = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
   assert.equal(manifest.dsh.bundle.patch, './cordis.patch.yml');
   assert.ok(manifest.engines.dsh, 'engines.dsh gates installation');
+});
+
+test('the manifest follows the unified dsh baseline', async () => {
+  const manifest = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
+  assert.equal(manifest.dsh.manifestVersion, 1);
+  assert.equal(manifest.engines.dsh, '>=0.2.1-rc.2 <0.3.0-0');
+  assert.equal(manifest.engines.node, '>=22.19.0');
+  for (const name of ['@deepseek-ai/dsh-credentials', '@deepseek-ai/dsh-llm-pi-ai', '@deepseek-ai/dsh-tools']) {
+    assert.equal(manifest.peerDependencies[name], '>=0.2.1-0 <0.3.0', name);
+  }
+  await assert.rejects(access(resolve(root, 'market/index.json')), { code: 'ENOENT' });
 });
 
 test('npm pack ships every runtime and display resource and nothing private', async () => {

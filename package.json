@@ -35,22 +35,18 @@
     "CHANGELOG.md",
     "README.md",
     "README.zh.md",
-    "SECURITY.md",
-    "PLAN.md",
-    "ROADMAP.md",
-    "VALIDATION.md"
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "node scripts/build-client.mjs",
     "prepack": "npm run build",
     "test": "node --test test/*.test.js",
-    "validate:market": "node scripts/validate-market.mjs",
-    "check": "node --check src/index.js && node --check src/adapter.js && node --check src/catalog.js && node --check src/media.js && node --check src/media-entry.js && node --check src/service.js && node --check src/client.js && node --check scripts/validate-market.mjs && node --check scripts/update-market.mjs && node --check scripts/build-client.mjs",
+    "check": "node --check src/index.js && node --check src/adapter.js && node --check src/catalog.js && node --check src/media.js && node --check src/media-entry.js && node --check src/service.js && node --check src/client.js && node --check scripts/build-client.mjs",
     "prepublishOnly": "npm test && npm run check"
   },
   "engines": {
     "node": ">=22.19.0",
-    "dsh": ">=0.2.0-rc.2 <0.3.0"
+    "dsh": ">=0.2.1-rc.2 <0.3.0-0"
   },
   "repository": {
     "type": "git",
@@ -79,6 +75,7 @@
     "tag": "alpha"
   },
   "dsh": {
+    "manifestVersion": 1,
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
@@ -95,14 +92,13 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.4",
-    "@deepseek-ai/dsh-credentials": ">=0.2.0-rc.2 <0.3.0",
-    "@deepseek-ai/dsh-llm-pi-ai": ">=0.2.0-rc.2 <0.3.0",
-    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-credentials": ">=0.2.1-0 <0.3.0",
+    "@deepseek-ai/dsh-llm-pi-ai": ">=0.2.1-0 <0.3.0",
+    "@deepseek-ai/dsh-tools": ">=0.2.1-0 <0.3.0",
     "@deepseek-ai/schemastery": "~3.18.4"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-plugin-market-index": "0.2.1-alpha.4",
+    "@deepseek-ai/dsh-llm": ">=0.2.1-0 <0.3.0",
     "esbuild": "^0.28.2",
     "react": "^18.3.1"
   },

@@ -34,7 +34,6 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: git diff --exit-code -- lib/client.js
-      - run: npm run validate:market
       - name: Pack the installable tarball
         run: npm pack
       - name: Create the GitHub release
@@ -50,23 +49,6 @@ jobs:
               --generate-notes \
               "${FLAGS[@]}"
           gh release upload "$GITHUB_REF_NAME" "dsh-grok-byapi-$VERSION.tgz" --clobber
-      - name: Refresh the Discover index on main
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout -B market-index origin/main
-          node scripts/update-market.mjs "$GITHUB_SHA"
-          npm run validate:market
-          if git diff --quiet -- market/index.json; then
-            echo "market index already current"
-            exit 0
-          fi
-          git add market/index.json
-          git commit -m "chore(market): index $GITHUB_REF_NAME"
-          git push origin HEAD:main
       - name: Publish to npm when a token is configured
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
