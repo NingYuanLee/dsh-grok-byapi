@@ -2,6 +2,17 @@
 
 本文记录面向使用者的变更。版本兼容范围与已验收能力见 [VALIDATION.md](VALIDATION.md)。
 
+## 0.2.0-alpha.2 — 2026-10-18
+
+客户端界面双语与发布工程补齐：
+
+- 客户端设置页、工具结果卡片、媒体播放器与只读提供商页接入 dsh 官方 locale 服务（`ctx.locale.register` + 槽位 `locale` 选项）：跟随宿主语言显示英文或中文，切换语言实时生效；缺少 locale 服务的旧宿主回退中文。
+- `dsh.client.inject` 增加 `@deepseek-ai/dsh-client-locale`；README 增加英文界面截图。
+- 删除未被任何 dsh 版本使用的 `locale/build/*` 资源与 `./build/locale/*.json` 导出，npm 包更精简。
+- devDependencies 的 `@deepseek-ai/dsh-llm` 由 `0.2.0-rc.2` 升级到 `0.2.1-rc.2`，与已验证的桌面运行时一致。
+- 发布工作流在创建 Release 后自动把 `market/index.json` 更新到本次 tag 的 commit 并推送回 `main`；`npm run validate:market` 继续作为门禁。
+- 自动测试由 55 项增加到 63 项（新增客户端 i18n 与打包回归测试），全部通过。
+
 ## 0.2.0-alpha.1 — 2026-10-18
 
 首个可从公开仓库安装的预览版。设置页交互与配置调整，含一处配置键废弃；本轮同时补齐插件展示元数据、双语文档、GitHub Release 与社区收录所需文件：

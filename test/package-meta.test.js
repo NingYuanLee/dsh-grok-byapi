@@ -68,6 +68,9 @@ test('npm pack ships every runtime and display resource and nothing private', as
   const result = JSON.parse(stdout.slice(start, end + 1));
   const files = new Set(result[0].files.map(file => file.path));
   for (const path of packed) assert.ok(files.has(path), 'packed: ' + path);
+  const manifest = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
+  assert.equal(manifest.exports['./build/locale/*.json'], undefined, 'the retired build locale export stays removed');
+  for (const path of files) assert.ok(!path.startsWith('locale/build/'), 'retired locale/build resource must not be packed: ' + path);
   for (const path of files) {
     assert.ok(!path.startsWith('node_modules/'), 'node_modules leaked: ' + path);
     assert.ok(!path.startsWith('.local/'), '.local leaked: ' + path);

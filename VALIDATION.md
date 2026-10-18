@@ -2,6 +2,13 @@
 
 本文件分批记录：`0.1.0-alpha.1` 于 2026-10-16 在 Windows、Node.js 24、DeepSeek Harness `0.2.0-rc.2`、CLIProxyAPI `v8.0.30` 上完成端到端验收；`0.2.0-alpha.1` 于 2026-10-17 补充自动化回归与 dsh `0.2.1-rc.1` 运行环境复核，2026-10-18 补充设置页 GUI 实机验收。
 
+## 0.2.0-alpha.2 复核（2026-10-18）
+
+- 客户端 UI 接入 dsh 官方 locale 服务：设置页/工具卡片/播放器/只读提供商页随宿主语言切换。隔离 Web profile 实机核对：英文界面（en-US）显示 Connection / API address / API key / Get models / Chat models / Media models，中文界面（zh-CN）显示对应中文；两套文案由 106 个 key 的中英字典提供，切换语言无需刷新。README 设置页截图取自英文界面。
+- 删除未使用的 `locale/build/*` 资源与导出；`npm pack` 清单不再包含该目录。
+- devDependencies 的 `@deepseek-ai/dsh-llm` 升级到 `0.2.1-rc.2` 后，宿主侧测试与适配器注册测试全部通过。
+- 发布工作流新增 `market/index.json` 自动更新（创建 Release 后用 tag commit 更新并推送回 `main`）。
+
 ## 0.2.0-alpha.1 复核（2026-10-17 ~ 2026-10-18）
 
 - Windows + Node.js 24：51 项自动测试全部通过，`npm run check` 通过，`npm run build` 产物与提交内容一致（CI 的 `git diff --exit-code -- lib/client.js` 门禁成立）。

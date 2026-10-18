@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Grok ByAPI",
-    "description": "通过api接入grok模型"
+    "description": "通过 OpenAI 兼容网关在 DeepSeek Harness 中接入 Grok：模型发现、对话、图片与视频生成、文字转语音和持久本地媒体任务。"
   }
 }

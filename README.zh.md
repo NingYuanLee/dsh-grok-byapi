@@ -8,7 +8,7 @@
 
 [English](README.md) | 中文
 
-> **早期 alpha（`0.2.0-alpha.1`）**：npm 尚未发布，请从 git 安装（Release tarball 发布后也可用）；建议先用独立测试 profile。实际验收范围见 [VALIDATION.md](VALIDATION.md)，逐版变更见 [CHANGELOG.md](CHANGELOG.md)。
+> **早期 alpha（`0.2.0-alpha.2`）**：npm 尚未发布，请从 git 安装（Release tarball 发布后也可用）；建议先用独立测试 profile。实际验收范围见 [VALIDATION.md](VALIDATION.md)，逐版变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 一个插件、一套网关连接。聊天模型出现在模型选择器里；图片、视频、TTS 模型不进入选择器，改由工具调用。任何聊天模型——Grok 或其他提供方——都能调用这些工具。插件只连接你已有的 Grok 网关（默认 CLIProxyAPI），把调用密钥存进 dsh 凭据服务，生成物保存在本地。它不是 OAuth 客户端，不提供账号或额度，也不读取 Grok CLI 的 OAuth 令牌。
 
@@ -16,7 +16,7 @@
 
 | 插件页 | 设置页 |
 | --- | --- |
-| ![插件列表中已安装 dsh-grok-byapi](docs/assets/screenshot-plugins.jpg) | ![插件设置页，两个组件运行中](docs/assets/screenshot-settings.jpg) |
+| ![插件列表中已安装 dsh-grok-byapi](docs/assets/screenshot-plugins.jpg) | ![英文界面下的插件设置页，两个组件运行中](docs/assets/screenshot-settings.jpg) |
 
 通过图片工具生成的一张 Grok 示例图：
 
@@ -65,7 +65,7 @@
 
 ```powershell
 dsh --profile grok-byapi-test --from-default-profile web --dump-config
-dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0-alpha.1"
+dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0-alpha.2"
 ```
 
 `--dump-config` 会基于默认 profile 创建新 profile、打印合并后的配置，不启动服务。`dsh plugin add` 会把插件记进该 profile 的 `dsh.profile.bundles`，不需要手动改 YAML。仓库没有 `prepare` / `postinstall` 脚本，安装期不执行构建代码，也不需要 `allowBuilds`。
@@ -73,7 +73,7 @@ dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh
 **GitHub Release tarball（发布后可用）：**
 
 ```powershell
-dsh plugin --profile grok-byapi-test add "https://github.com/NingYuanLee/dsh-grok-byapi/releases/download/v0.2.0-alpha.1/dsh-grok-byapi-0.2.0-alpha.1.tgz"
+dsh plugin --profile grok-byapi-test add "https://github.com/NingYuanLee/dsh-grok-byapi/releases/download/v0.2.0-alpha.2/dsh-grok-byapi-0.2.0-alpha.2.tgz"
 ```
 
 **本地源码（开发调试）：**
@@ -191,7 +191,7 @@ dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 
 ```bash
 npm install --ignore-scripts
-npm test             # 55 项自动测试
+npm test             # 63 项自动测试
 npm run check        # 源文件语法检查
 npm run build        # 由 src/client.js 重新生成 lib/client.js
 npm run validate:market
