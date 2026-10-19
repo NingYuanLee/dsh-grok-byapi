@@ -27,9 +27,12 @@ export const zh = {
   'tool.category.research': '研究',
   'tool.category.unknown': '未知',
   'tool.task': '任务：{id}',
-  'tool.progress': '上游进度：{percent}%',
+  'tool.kind.image': '图片',
+  'tool.kind.video': '视频',
+  'tool.kind.speech': '语音',
+  'tool.progress': '进度快照：{percent}%',
   'tool.openResult': '打开结果 · {name}',
-  'tool.statusHint': '调用 grok_media_status 查询原任务；本卡片显示该次调用记录的状态。',
+  'tool.statusHint': '这是本次调用记下的生成快照，不会更新。要看新的快照，调用 grok_media_status 查询原任务。',
   'tool.state.submitting': '提交中',
   'tool.state.generating': '生成中',
   'tool.state.downloading': '正在保存',
@@ -136,9 +139,12 @@ export const en = {
   'tool.category.research': 'Research',
   'tool.category.unknown': 'Other',
   'tool.task': 'Task: {id}',
-  'tool.progress': 'Upstream progress: {percent}%',
+  'tool.kind.image': 'Image',
+  'tool.kind.video': 'Video',
+  'tool.kind.speech': 'Speech',
+  'tool.progress': 'Progress snapshot: {percent}%',
   'tool.openResult': 'Open result · {name}',
-  'tool.statusHint': 'Call grok_media_status to check the original task; this card shows the status recorded by that call.',
+  'tool.statusHint': 'This is the snapshot recorded by this call. It does not update. Call grok_media_status to check the original task.',
   'tool.state.submitting': 'Submitting',
   'tool.state.generating': 'Generating',
   'tool.state.downloading': 'Saving',
@@ -278,6 +284,66 @@ function stateText(t, status) {
   const key = STATE_KEYS[status];
   return key ? t(key) : status;
 }
+const KIND_KEYS = { image: 'tool.kind.image', video: 'tool.kind.video', speech: 'tool.kind.speech' };
+function kindText(t, kind) {
+  const key = KIND_KEYS[kind];
+  return key ? t(key) : (kind || 'Grok');
+}
+function statusTone(status) {
+  if (status === 'saved') return 'success';
+  if (status === 'failed' || status === 'submission-unknown' || status === 'download-failed') return 'danger';
+  return 'neutral';
+}
+const snap = {
+  stack: { display: 'grid', gap: 8 },
+  card: { display: 'grid', gap: 8, padding: '12px 14px', color: 'var(--dsw-alias-label-primary)', background: 'var(--dsw-alias-bg-layer-2, transparent)', border: '0.5px solid var(--dsw-alias-border-l3, var(--border-color, #8885))', borderRadius: 'var(--dsw-radius-lg, 16px)' },
+  head: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  title: { margin: 0, fontSize: 13, fontWeight: 600, lineHeight: 1.4 },
+  pill: { flex: 'none', fontSize: 11, lineHeight: '18px', padding: '0 8px', borderRadius: 999, border: '0.5px solid var(--dsw-alias-border-l2, #8885)' },
+  meta: { margin: 0, color: 'var(--dsw-alias-label-secondary)', fontSize: 12, lineHeight: 1.4 },
+  id: { margin: 0, color: 'var(--dsw-alias-label-tertiary)', fontSize: 11, lineHeight: 1.4, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', overflowWrap: 'anywhere' },
+  track: { height: 4, borderRadius: 999, overflow: 'hidden', background: 'var(--dsw-alias-fill-l2, #8882)' },
+  fill: { display: 'block', height: '100%', borderRadius: 999, background: 'var(--dsw-alias-brand-primary, currentColor)' },
+  files: { display: 'flex', flexWrap: 'wrap', gap: 6 },
+  file: { height: 28, padding: '0 10px', font: 'inherit', fontSize: 12, color: 'var(--dsw-alias-label-primary)', background: 'var(--dsw-alias-bg-layer-1, transparent)', border: '0.5px solid var(--dsw-alias-border-l2, #8885)', borderRadius: 'var(--dsw-radius-sm, 8px)' },
+  hint: { margin: 0, color: 'var(--dsw-alias-label-tertiary)', fontSize: 12, lineHeight: 1.5 },
+  error: { margin: 0, color: 'var(--dsw-alias-state-error-primary, #c62828)', fontSize: 12, lineHeight: 1.5 },
+  alert: { padding: '10px 12px', borderRadius: 'var(--dsw-radius-lg, 16px)', border: '0.5px solid var(--dsw-alias-state-error-primary, #c62828)', color: 'var(--dsw-alias-state-error-primary, #c62828)', fontSize: 13 },
+  running: { padding: '10px 12px', borderRadius: 'var(--dsw-radius-lg, 16px)', color: 'var(--dsw-alias-label-secondary)', fontSize: 13 },
+};
+function pillStyle(tone) {
+  if (tone === 'success') return { ...snap.pill, color: 'var(--dsw-alias-state-success-primary, #1b7f4a)', borderColor: 'var(--dsw-alias-state-success-primary, #1b7f4a)' };
+  if (tone === 'danger') return { ...snap.pill, color: 'var(--dsw-alias-state-error-primary, #c62828)', borderColor: 'var(--dsw-alias-state-error-primary, #c62828)' };
+  return { ...snap.pill, color: 'var(--dsw-alias-label-secondary)' };
+}
+function SnapshotTask({ task, openFile, t }) {
+  const percent = Number.isFinite(task.progress) ? Math.max(0, Math.min(100, task.progress)) : null;
+  const files = Array.isArray(task.files) ? task.files : [];
+  return h('article', { style: snap.card },
+    h('div', { style: snap.head },
+      h('p', { style: snap.title }, kindText(t, task.kind)),
+      h('span', { style: pillStyle(statusTone(task.status)) }, stateText(t, task.status))),
+    task.model ? h('p', { style: snap.meta }, task.model) : null,
+    percent === null ? null : h('div', null,
+      h('div', { style: snap.track, 'aria-hidden': 'true' }, h('div', { style: { ...snap.fill, width: percent + '%' } })),
+      h('p', { style: { ...snap.meta, marginTop: 6 } }, t('tool.progress', { percent }))),
+    h('p', { style: snap.id }, t('tool.task', { id: task.id })),
+    task.error ? h('p', { role: 'alert', style: snap.error }, typeof task.error === 'string' ? task.error : JSON.stringify(task.error)) : null,
+    files.length ? h('div', { style: snap.files }, ...files.map(file => {
+      const name = String(file.path || '').split(/[\\/]/).pop();
+      return h('button', { key: file.path, type: 'button', disabled: !openFile, onClick: () => openFile?.(file.path), style: { ...snap.file, cursor: openFile ? 'pointer' : 'default' } }, t('tool.openResult', { name }));
+    })) : null,
+    ['generating', 'submitting'].includes(task.status) ? h('p', { style: snap.hint }, t('tool.statusHint')) : null);
+}
+function fileName(path) {
+  return String(path || '').split(/[\\/]/).pop();
+}
+function SavedFiles({ files, openFile }) {
+  return h('div', { style: snap.files }, ...files.map(file => h('button', {
+    key: file.path, type: 'button', disabled: !openFile, onClick: () => openFile?.(file.path),
+    style: { ...snap.file, cursor: openFile ? 'pointer' : 'default' },
+  }, fileName(file.path))));
+}
 const tools = ['grok_generate_image', 'grok_generate_video', 'grok_speak', 'grok_media_status', 'grok_media_retry_download', 'grok_media_list', 'grok_models'];
 
 export function resultValue(block) {
@@ -286,23 +352,20 @@ export function resultValue(block) {
 }
 
 export function GrokToolCard({ toolName, phase, block, openFile, t = zhT }) {
-  if (phase !== 'result') return h('div', { role: 'status', style: { padding: 10 } }, t('tool.running', { tool: toolName }));
+  if (phase !== 'result') return h('div', { role: 'status', style: snap.running }, t('tool.running', { tool: toolName }));
   const value = resultValue(block);
   const tasks = Array.isArray(value) ? value : value?.id ? [value] : [];
-  if (!value || block?.isError) return h('div', { role: 'alert', style: { padding: 10 } }, t('tool.errorPrefix') + (block?.content?.filter(x => x.type === 'text').map(x => x.text).join('\n') || t('tool.callFailed')));
-  if (value.models) return h('details', { style: { padding: 10 } }, h('summary', null, t('tool.models.title', { count: value.models.length })),
-    value.error ? h('p', { role: 'alert' }, value.error) : null,
+  if (!value || block?.isError) return h('div', { role: 'alert', style: snap.alert }, t('tool.errorPrefix') + (block?.content?.filter(x => x.type === 'text').map(x => x.text).join('\n') || t('tool.callFailed')));
+  if (value.models) return h('details', { style: snap.card }, h('summary', null, t('tool.models.title', { count: value.models.length })),
+    value.error ? h('p', { role: 'alert', style: snap.error }, value.error) : null,
     ...['chat', 'image', 'video', 'speech', 'research', 'unknown'].map(category => h('div', { key: category }, h('strong', null, t('tool.categoryLine', { category: t('tool.category.' + category) })), value.models.filter(x => x.category === category).map(x => x.id).join('、') || t('tool.models.empty'))));
-  return h('div', { style: { padding: 12, border: '1px solid var(--border-color, #8885)', borderRadius: 8 } },
-    ...tasks.map(task => h('div', { key: task.id, style: { marginBottom: 8 } },
-      h('strong', null, 'Grok ' + (task.kind || '') + ' · ' + stateText(t, task.status)),
-      h('div', null, task.model),
-      h('div', null, t('tool.task', { id: task.id })),
-      Number.isFinite(task.progress) ? h('div', null, t('tool.progress', { percent: task.progress })) : null,
-      task.error ? h('p', { role: 'alert' }, typeof task.error === 'string' ? task.error : JSON.stringify(task.error)) : null,
-      ...(task.files || []).map(file => h('button', { key: file.path, type: 'button', onClick: () => openFile?.(file.path), disabled: !openFile, style: { display: 'block', marginTop: 6 } }, t('tool.openResult', { name: file.path.split(/[\\/]/).pop() }))),
-      ['generating', 'submitting'].includes(task.status) ? h('small', null, t('tool.statusHint')) : null,
-    )), tasks.length ? null : h('pre', { style: { whiteSpace: 'pre-wrap' } }, JSON.stringify(value, null, 2)));
+  return h('div', { style: snap.stack },
+    ...tasks.map(task => {
+      const files = Array.isArray(task.files) ? task.files : [];
+      if (task.status === 'saved' && files.length) return h(SavedFiles, { key: task.id, files, openFile });
+      return h(SnapshotTask, { key: task.id, task, openFile, t });
+    }),
+    tasks.length ? null : h('pre', { style: { whiteSpace: 'pre-wrap', margin: 0 } }, JSON.stringify(value, null, 2)));
 }
 
 export function MediaPreview({ content, t = zhT }) {

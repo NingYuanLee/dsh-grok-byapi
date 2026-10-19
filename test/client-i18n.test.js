@@ -161,11 +161,17 @@ test('en / zh 渲染工具卡片与媒体播放器', () => {
   const block = { content: [{ type: 'text', text: JSON.stringify(task) }] };
   const result = Client.exports.GrokToolCard({ toolName: 'grok_generate_image', phase: 'result', block, t: enT });
   const resultText = textsOf(result);
-  assert.match(resultText, /Grok image · Generating/);
+  assert.match(resultText, /Image/);
+  assert.match(resultText, /Generating/);
   assert.match(resultText, /Task: task-1/);
-  assert.match(resultText, /Upstream progress: 42%/);
+  assert.match(resultText, /Progress snapshot: 42%/);
   assert.match(resultText, /grok_media_status/);
   assert.equal(hasCjk(resultText), false);
+
+  const saved = { id: 'task-2', kind: 'speech', status: 'saved', model: 'grok-tts', files: [{ path: 'C:/media/result-1.mp3', mime: 'audio/mpeg', size: 10 }] };
+  const savedText = textsOf(Client.exports.GrokToolCard({ toolName: 'grok_speak', phase: 'result', t: enT, block: { content: [{ type: 'text', text: JSON.stringify(saved) }] } }));
+  assert.match(savedText, /result-1\.mp3/);
+  assert.equal(/Saved|Task:|Progress snapshot|grok-tts/.test(savedText), false);
 
   const catalog = Client.exports.GrokToolCard({ toolName: 'grok_models', phase: 'result', t: enT, block: { content: [{ type: 'text', text: JSON.stringify({ models: [{ id: 'grok-4.7', category: 'chat' }, { id: 'grok-imagine-image', category: 'image' }] }) }] } });
   const catalogText = textsOf(catalog);
