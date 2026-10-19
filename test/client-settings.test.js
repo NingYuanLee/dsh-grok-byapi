@@ -434,6 +434,8 @@ test('配置挂在插件上，每个媒体工具都有结果卡片', () => {
   const chatText = textsOf(chat.component({ view: 'page' }));
   const mediaText = textsOf(imagine.component({ view: 'page' }));
   assert.match(chatText, /grok_models/);
+  assert.match(chatText, /输入：/);
+  assert.match(chatText, /产出：/);
   assert.match(chatText, /dsh-grok-imagine/);
   assert.doesNotMatch(chatText, /grok_edit_image/);
   assert.match(mediaText, /图生图/);

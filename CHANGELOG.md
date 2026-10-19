@@ -4,6 +4,11 @@
 
 ## 未发布（Unreleased）
 
+## 0.2.1 — 2026-10-19
+
+- 组件详情里的每条能力改成写明输入和产出，不再用一句话带过。
+- README 加入两张由 `grok_generate_image` 实际生成的演示图。
+
 ## 0.2.0 — 2026-10-19
 
 离开 alpha 发布通道。`publishConfig.tag` 与发布工作流改为 npm `latest`；版本号不再带预发布标识。

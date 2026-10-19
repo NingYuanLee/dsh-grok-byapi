@@ -1,6 +1,6 @@
 {
   "name": "dsh-grok-byapi",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "displayName": "Grok ByAPI",
   "description": "Native Grok for DeepSeek Harness: chat provider, image and video generation, TTS, and durable local media tasks over any OpenAI-compatible Grok gateway.",
   "license": "MIT",
@@ -28,6 +28,8 @@
     "locale",
     "docs/assets/banner.svg",
     "docs/assets/showcase.jpg",
+    "docs/assets/demo-still.jpg",
+    "docs/assets/demo-warm.jpg",
     "docs/assets/screenshot-plugins.jpg",
     "docs/assets/screenshot-settings.jpg",
     "screenshots.json",

@@ -8,7 +8,7 @@
 
 [English](README.md) | 中文
 
-> **`0.2.0`，npm 频道 `latest`。** 聊天路由依赖 dsh `0.2.1-rc.2` 这一档的适配器注册方式，升级宿主后要重跑集成测试。验收范围见 [VALIDATION.md](VALIDATION.md)。
+> **`0.2.1`，npm 频道 `latest`。** 聊天路由依赖 dsh `0.2.1-rc.2` 这一档的适配器注册方式，升级宿主后要重跑集成测试。验收范围见 [VALIDATION.md](VALIDATION.md)。
 
 一个插件、一套网关连接。聊天模型出现在模型选择器里；图片、视频、TTS 模型不进入选择器，改由工具调用。任何聊天模型——Grok 或其他提供方——都能调用这些工具。插件只连接你已有的 Grok 网关（默认 CLIProxyAPI），把调用密钥存进 dsh 凭据服务，生成物保存在本地。它不是 OAuth 客户端，不提供账号或额度，也不读取 Grok CLI 的 OAuth 令牌。
 
@@ -18,9 +18,11 @@
 | --- | --- |
 | ![插件列表中已安装 dsh-grok-byapi](docs/assets/screenshot-plugins.jpg) | ![英文界面下的插件设置页，两个组件运行中](docs/assets/screenshot-settings.jpg) |
 
-通过图片工具生成的一张 Grok 示例图：
+下面两张都是这个插件用 `grok_generate_image` 和 `grok-imagine-image-2.0` 生成的，没有后期拼图：
 
-![通过插件生成的示例图](docs/assets/showcase.jpg)
+| 冷色静物 | 暖色静物 |
+| --- | --- |
+| ![桌面上卷起的纸和一颗映着青光的玻璃球](docs/assets/demo-still.jpg) | ![同一题材的暖色灯和一道离开玻璃球的光弧](docs/assets/demo-warm.jpg) |
 
 ## 功能
 
@@ -69,13 +71,13 @@ dsh --profile grok-byapi-test --from-default-profile web --dump-config
 dsh plugin --profile grok-byapi-test add dsh-grok-byapi
 ```
 
-这会安装当前 `latest`，也就是 `0.2.0`。
+这会安装当前 `latest`，也就是 `0.2.1`。
 
 **从 git 安装，固定 tag：**
 
 ```powershell
 dsh --profile grok-byapi-test --from-default-profile web --dump-config
-dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0"
+dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.1"
 ```
 
 `--dump-config` 会基于默认 profile 创建新 profile、打印合并后的配置，不启动服务。`dsh plugin add` 会把插件记进该 profile 的 `dsh.profile.bundles`，不需要手动改 YAML。仓库没有 `prepare` / `postinstall` 脚本，安装期不执行构建代码，也不需要 `allowBuilds`。
@@ -83,7 +85,7 @@ dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh
 **GitHub Release tarball（发布后可用）：**
 
 ```powershell
-dsh plugin --profile grok-byapi-test add "https://github.com/NingYuanLee/dsh-grok-byapi/releases/download/v0.2.0/dsh-grok-byapi-0.2.0.tgz"
+dsh plugin --profile grok-byapi-test add "https://github.com/NingYuanLee/dsh-grok-byapi/releases/download/v0.2.1/dsh-grok-byapi-0.2.1.tgz"
 ```
 
 **本地源码（开发调试）：**
@@ -178,7 +180,7 @@ dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 
 | 现象 | 处理 |
 | --- | --- |
-| `dsh plugin add` 失败或报 404 | 确认安装的是 npm 上的 `dsh-grok-byapi@0.2.0`，或改用上面的 git / tarball。 |
+| `dsh plugin add` 失败或报 404 | 确认安装的是 npm 上的 `dsh-grok-byapi@0.2.1`，或改用上面的 git / tarball。 |
 | 插件列表里有，但加载不成功 | dsh 不在 `>=0.2.1-rc.2 <0.3.0-0` 范围内，升级到 0.2.x 构建。 |
 | 设置页报 401 或 403 | 密钥或基础地址不对，重新保存密钥并检查 `/v1` 后缀。 |
 | 连接被拒或超时 | 网关没启动或不可达；`127.0.0.1` 指运行 dsh 的电脑。 |
