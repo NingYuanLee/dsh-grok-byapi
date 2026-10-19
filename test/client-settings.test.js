@@ -52,7 +52,7 @@ const textsOf = node => [].concat(node?.children ?? []).map(c => (typeof c === '
 const byLabel = (tree, label) => walk(tree).find(n => (n.props || {})['aria-label'] === label);
 const buttonByText = (tree, label) => walk(tree).find(n => n.type === 'button' && textsOf(n).includes(label));
 const statusText = tree => walk(tree).filter(n => n.props?.role === 'status').map(textsOf).join(' ');
-const TOOL_KEYS = ['grok_generate_image', 'grok_generate_video', 'grok_speak', 'grok_media_status', 'grok_media_retry_download', 'grok_media_list', 'grok_models'];
+const TOOL_KEYS = ['grok_generate_image', 'grok_edit_image', 'grok_generate_video', 'grok_edit_video', 'grok_extend_video', 'grok_speak', 'grok_media_status', 'grok_media_retry_download', 'grok_media_list', 'grok_models'];
 
 const DISCOVERED = [
   { id: 'grok-4.7', name: 'grok-4.7', contextWindow: 500000, maxTokens: 32768, inputModalities: ['text', 'image'] },
@@ -413,7 +413,7 @@ test('提供商信息是只读的，并指向真正的配置位置', () => {
   assert.match(text, /只读/);
 });
 
-test('配置挂在插件上，七个工具都有结果卡片', () => {
+test('配置挂在插件上，每个媒体工具都有结果卡片', () => {
   const Client = loadClient();
   const registered = [];
   const ctx = {
@@ -427,9 +427,25 @@ test('配置挂在插件上，七个工具都有结果卡片', () => {
   assert.equal(bundles.length, 1);
   assert.equal(bundles[0].key, 'dsh-grok-byapi');
   assert.match(textsOf(bundles[0].component({ view: 'summary' })), /Grok 连接、密钥与模型参数/);
-  assert.equal(registered.filter(r => r.name === 'plugins.row.config').length, 0);
+  const rows = registered.filter(r => r.name === 'plugins.row.config');
+  assert.deepEqual(rows.map(r => r.key).sort(), ['dsh-grok-byapi#dsh-grok-imagine', 'dsh-grok-byapi#grok-byapi']);
+  const chat = rows.find(row => row.key.endsWith('#grok-byapi'));
+  const imagine = rows.find(row => row.key.endsWith('#dsh-grok-imagine'));
+  const chatText = textsOf(chat.component({ view: 'page' }));
+  const mediaText = textsOf(imagine.component({ view: 'page' }));
+  assert.match(chatText, /grok_models/);
+  assert.match(chatText, /dsh-grok-imagine/);
+  assert.doesNotMatch(chatText, /grok_edit_image/);
+  assert.match(mediaText, /图生图/);
+  assert.match(mediaText, /图生视频/);
+  assert.match(mediaText, /grok_extend_video/);
+  assert.match(mediaText, /不提供：语音识别/);
+  assert.match(mediaText, /grok-byapi/);
+  assert.doesNotMatch(mediaText, /刷新模型目录/);
+  assert.equal(walk(chat.component({ view: 'page' })).some(n => n.type === 'input'), false);
+  assert.equal(walk(imagine.component({ view: 'page' })).some(n => n.type === 'input'), false);
   const toolviews = registered.filter(r => r.name === 'tool.call.toolview').map(r => r.key);
-  assert.deepEqual(toolviews.sort(), [...TOOL_KEYS].sort(), '七个工具都要有结果卡片');
+  assert.deepEqual(toolviews.sort(), [...TOOL_KEYS].sort(), '每个已注册工具都要有结果卡片');
 });
 
 test('插件详情页自己读取设置，不依赖页面传入的表单', async () => {

@@ -173,6 +173,10 @@ export async function apply(ctx, config) {
       const instance = new MediaManager({ baseURL, resolveKey,
         dataDir: resolve(dataDir(), 'connections', createHash('sha256').update(JSON.stringify([baseURL, c.apiKey, c.apiKeyEnv, dataDir()])).digest('hex').slice(0,16)), timeoutMs: c.timeoutMs });
       await instance.init();
+      instance.startWatchers(abort.signal, task => {
+        const level = task.status === 'saved' ? 'info' : 'warn';
+        ctx.logger?.[level]?.('grok-byapi: 媒体任务 ' + task.id + ' ' + task.status);
+      });
       return instance;
       })();
       managers.set(identity, ready);

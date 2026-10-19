@@ -30,7 +30,7 @@ export async function apply(ctx) {
     for (const dispose of disposers.splice(0)) { try { dispose(); } catch { /* 已注销 */ } }
     for (const build of factories) disposers.push(build());
   };
-  const idParam = { task_id: { type: 'string', required: true, description: '任务 ID：由 grok_generate_video 或 grok_generate_image / grok_speak 返回的 id 字段（UUID）' } };
+  const idParam = { task_id: { type: 'string', required: true, description: '任务 ID：由生成、编辑或延长工具返回的 id 字段（UUID）' } };
 
   tool('grok_generate_image', () => '用 Grok Imagine 生成图片并保存到本地。任何聊天模型都可以调用，不要求当前对话模型是 Grok。用户说“画一张/生成图片/出图/做个海报/给我一张…”这类请求时用这个工具。'
     + '参数：prompt（必填）= 画面描述，最长 60000 字符；model（可选）= 图片模型 ID，当前可选：' + runtime.describeModels('image') + '，省略则用插件设置里的默认图片模型；n（可选）= 一次生成几张，取值 1–4，默认 1。'
@@ -41,14 +41,42 @@ export async function apply(ctx) {
     n: { type: 'integer', description: '生成张数，1–4，默认 1' } },
   async (args, exec) => (await runtime.manager()).image({ ...args, model: runtime.requireModel(args.model || runtime.mediaConfig().imageModel, 'image') }, ownerOf(exec), signalOf(exec)));
 
-  tool('grok_generate_video', () => '提交 Grok 视频生成任务。任何聊天模型都可以调用。用户说“生成视频/做个视频”时用这个工具。'
+  tool('grok_edit_image', () => '按文字说明编辑已有图片并保存。参考图用 image_url、image_urls（1–5 个 HTTPS 地址）或已保存图片任务的 source_task_id，至少给一种。'
+    + 'model 可选，当前图片模型：' + runtime.describeModels('image') + '。一次调用完成编辑与保存。失败且 status 不是 saved 时，先查 grok_media_status，不要重新编辑。',
+  { prompt: { type: 'string', required: true, description: '要做的修改，最长 60000 字符' },
+    model: { type: 'string', description: '图片模型 ID；省略用插件默认' },
+    image_url: { type: 'string', description: '一张参考图的 HTTPS 地址' },
+    image_urls: { type: 'array', items: { type: 'string' }, description: '最多 5 张参考图的 HTTPS 地址' },
+    source_task_id: { type: 'string', description: '已保存图片任务的 id；本地文件超过 8MB 时请改用 HTTPS 地址' } },
+  async (args, exec) => (await runtime.manager()).editImage({ ...args, model: runtime.requireModel(args.model || runtime.mediaConfig().imageModel, 'image') }, ownerOf(exec), signalOf(exec)));
+
+  tool('grok_generate_video', () => '提交 Grok 视频生成任务。任何聊天模型都可以调用。用户说“生成视频/做个视频”时用这个工具。带 image_url 或已保存图片任务的 source_task_id 时，是让这一张静帧动起来的图生视频，只能一张。'
     + '参数：prompt（必填）最长 60000 字符；model（可选）当前可选：' + runtime.describeModels('video') + '；duration（可选）= 时长秒数，取值 1–15，默认 2。'
-    + '提交后用 grok_media_status(task_id) 查询，直到 saved 或 failed。status=submission-unknown 时不要重新提交。'
+    + '提交后插件会在后台查询，但结果卡片是快照，不会自动刷新。用 grok_media_status(task_id) 取回，直到 saved 或 failed。status=submission-unknown 时不要重新提交。'
     + '视频不要用 Markdown 图片语法内联，由结果卡片播放器呈现。',
   { prompt: { type: 'string', required: true, description: '视频内容描述（画面、运动、镜头），最长 60000 字符' },
     model: { type: 'string', description: '视频模型 ID，来自 grok_models 的 video 类；省略用插件默认' },
-    duration: { type: 'integer', description: '时长秒数，1–15，默认 2' } },
+    duration: { type: 'integer', description: '时长秒数，1–15，默认 2' },
+    image_url: { type: 'string', description: '可选。一张静帧的 HTTPS 地址，用来做图生视频' },
+    source_task_id: { type: 'string', description: '可选。已保存图片任务的 id，用来做图生视频；超过 8MB 请改用 HTTPS 地址' } },
   async (args, exec) => (await runtime.manager()).video({ ...args, model: runtime.requireModel(args.model || runtime.mediaConfig().videoModel, 'video') }, ownerOf(exec), signalOf(exec)));
+
+  tool('grok_edit_video', () => '按文字说明编辑已有视频。视频用 video_url（HTTPS）或已保存视频任务的 source_task_id。model 可选，当前视频模型：' + runtime.describeModels('video')
+    + '。接口是异步的：返回 generating 后插件会后台查询，卡片仍是快照。用 grok_media_status(task_id) 取回。status=submission-unknown 时不要重新提交。',
+  { prompt: { type: 'string', required: true, description: '要做的修改，最长 60000 字符' },
+    model: { type: 'string', description: '视频模型 ID；省略用插件默认' },
+    video_url: { type: 'string', description: '待编辑视频的 HTTPS 地址' },
+    source_task_id: { type: 'string', description: '已保存视频任务的 id；本地文件超过 8MB 时请改用 HTTPS 地址' } },
+  async (args, exec) => (await runtime.manager()).editVideo({ ...args, model: runtime.requireModel(args.model || runtime.mediaConfig().videoModel, 'video') }, ownerOf(exec), signalOf(exec)));
+
+  tool('grok_extend_video', () => '从已有视频最后一帧继续生成。视频用 video_url 或已保存视频任务的 source_task_id。duration 为延长秒数，1–15，默认 2。model 可选，当前视频模型：' + runtime.describeModels('video')
+    + '。返回 generating 后插件会后台查询；用 grok_media_status 取回。不要在 submission-unknown 时重新提交。',
+  { prompt: { type: 'string', required: true, description: '接下来画面里发生什么，最长 60000 字符' },
+    model: { type: 'string', description: '视频模型 ID；省略用插件默认' },
+    video_url: { type: 'string', description: '待延长视频的 HTTPS 地址' },
+    source_task_id: { type: 'string', description: '已保存视频任务的 id；本地文件超过 8MB 时请改用 HTTPS 地址' },
+    duration: { type: 'integer', description: '延长秒数，1–15，默认 2' } },
+  async (args, exec) => (await runtime.manager()).extendVideo({ ...args, model: runtime.requireModel(args.model || runtime.mediaConfig().videoModel, 'video') }, ownerOf(exec), signalOf(exec)));
 
   tool('grok_speak', () => '用 Grok TTS 把文字转成语音并保存为 mp3。任何聊天模型都可以调用。用户说“念一下/读出来/配音”时用这个工具。'
     + '参数：input（必填）最长 60000 字符；model（可选）当前可选：' + runtime.describeModels('speech') + '；voice（可选）= 音色名。'

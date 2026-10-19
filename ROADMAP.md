@@ -1,6 +1,6 @@
 # 开发路线与验收范围
 
-本文保留完整目标。仓库已有 `0.2.0-alpha.1` 的初步实现；实际完成与验收范围以 [VALIDATION.md](VALIDATION.md) 为准，不能把下面所有条目当作已交付。
+本文保留完整目标。`0.2.0` 已交付的范围以 [VALIDATION.md](VALIDATION.md) 为准，不能把下面所有条目当作已交付。
 
 ## 1. 连接与模型提供方
 
@@ -31,9 +31,9 @@
 
 插件的聊天路由复用 `@deepseek-ai/dsh-llm-pi-ai`。该包只导出 `PiAiAdapter` 类，而实例化它需要内部的 `profiles()`、`auth`（凭据存储与授权上下文）等结构，没有公开的「第三方构造一条路由」入口。因此 `src/adapter.js` 用一份最小 scope 调用官方 `apply`，再捕获它注册的适配器实例。
 
-- 影响：dsh 调整注册约定或其内部依赖的作用域时，路由会注册失败。dsh 的版本门禁由 `engines.dsh` 判定（`>=0.2.0-rc.2 <0.3.0`，预发布版本参与比较），`peerDependencies` 只声明 SDK 包范围；自动测试基于 `0.2.0-rc.2` SDK，另在 `0.2.1-rc.1` 上做过运行验证；升级 dsh 必须重跑集成测试。
-- 现有缓解：集成测试断言捕获到的是官方 `LlmAdapter` 实例，并校验 `providerInfo` 与 `listModels`；注册失败保留真实错误并写入 warn 日志。
-- 解除条件：dsh 开放第三方 LLM 路由/提供方注册的公开接口后，改为直接调用该接口并删除 scope 捕获。
+- 影响：dsh 调整注册约定或其内部依赖的作用域时，路由会注册失败。版本门禁是 `engines.dsh` 的 `>=0.2.1-rc.2 <0.3.0-0`。已核对 `@deepseek-ai/dsh-llm-pi-ai@0.2.1-rc.2`：公开导出有 `apply`、`Config`、`PiAiAdapter`，但构造适配器所需的凭据存储和模型集合助手仍未导出。升级 dsh 必须重跑集成测试。
+- 现有缓解：捕获到的实例再交给公开的 `ctx.llm.registerAdapter`。集成测试断言它是官方 `LlmAdapter`，并校验 `providerInfo` 与 `listModels`；注册失败保留真实错误并写入 warn 日志。
+- 解除条件：dsh 导出可独立构造的第三方路由工厂后，改为直接调用并删除 scope 捕获。
 
 ## 4. 展示与发布
 

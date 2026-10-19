@@ -98,6 +98,26 @@ export const zh = {
   'settings.effort.optionsAria': '思考强度选项 {index}',
   'settings.effort.levelAria': '思考强度 {level} {index}',
   'settings.writableBlocked': '当前配置被更高优先级的配置层覆盖，不能从此页修改。',
+  'settings.capabilities': '能力',
+  'settings.capabilities.hint': '只列这个组件自己的能力。',
+  'settings.cap.chatSummary': '对话与模型目录',
+  'settings.cap.mediaSummary': '图片、视频和语音',
+  'settings.cap.seeMedia': '图片、视频和语音属于组件 dsh-grok-imagine。',
+  'settings.cap.seeChat': '对话和模型目录属于组件 grok-byapi。连接、密钥和模型表在插件页。',
+  'settings.cap.chat': '对话：注册原生 Grok 提供方。只有聊天模型进入选择器。',
+  'settings.cap.models': 'grok_models：刷新模型目录，可选顺带检查密钥。',
+  'settings.cap.image': 'grok_generate_image：文生图，1–4 张，保存到本地。',
+  'settings.cap.imageEdit': 'grok_edit_image：图生图。按文字改最多 5 张参考图。',
+  'settings.cap.video': 'grok_generate_video：文生视频；带一张静帧时是图生视频。',
+  'settings.cap.videoEdit': 'grok_edit_video：视频生视频。按文字改已有视频。',
+  'settings.cap.extend': 'grok_extend_video：从最后一帧继续生成，并和原片接成一条。',
+  'settings.cap.speech': 'grok_speak：文字转语音，保存为 MP3。不是语音识别。',
+  'settings.cap.status': 'grok_media_status：查询任务并保存结果，不会重新生成。',
+  'settings.cap.retry': 'grok_media_retry_download：只重试下载，不重新生成。',
+  'settings.cap.list': 'grok_media_list：列出本会话的媒体任务。',
+  'settings.cap.watch': '后台查询：视频提交后自动轮询。卡片本身不会自动刷新。',
+  'settings.cap.player': '播放：MP4、MP3、WAV 在侧栏播放器打开。',
+  'settings.cap.unsupported': '不提供：语音识别、实时语音、直接 OAuth。',
   'settings.summary': 'Grok 连接、密钥与模型参数',
   'settings.load.missing': '没有读到已保存的 Grok ByAPI 配置，先按默认值显示。',
   'settings.load.failed': '读取已保存配置失败，先按默认值显示：{message}',
@@ -210,6 +230,26 @@ export const en = {
   'settings.effort.optionsAria': 'Reasoning effort options {index}',
   'settings.effort.levelAria': 'Reasoning effort {level} {index}',
   'settings.writableBlocked': 'This configuration is overridden by a higher-priority layer and cannot be modified here.',
+  'settings.capabilities': 'Capabilities',
+  'settings.capabilities.hint': 'Only the capabilities of this component.',
+  'settings.cap.chatSummary': 'Chat and model catalog',
+  'settings.cap.mediaSummary': 'Image, video, and speech',
+  'settings.cap.seeMedia': 'Image, video, and speech belong to the dsh-grok-imagine component.',
+  'settings.cap.seeChat': 'Chat and the model catalog belong to the grok-byapi component. Connection, key, and model settings are on the plugin page.',
+  'settings.cap.chat': 'Chat: native Grok provider. Only chat models appear in the picker.',
+  'settings.cap.models': 'grok_models: refresh the catalog, and optionally verify the key.',
+  'settings.cap.image': 'grok_generate_image: text to image, 1-4 images, saved locally.',
+  'settings.cap.imageEdit': 'grok_edit_image: image to image. Edit up to 5 reference images from a prompt.',
+  'settings.cap.video': 'grok_generate_video: text to video, or image to video when one still is attached.',
+  'settings.cap.videoEdit': 'grok_edit_video: video to video. Edit an existing video from a prompt.',
+  'settings.cap.extend': 'grok_extend_video: continue from the last frame and join it to the original.',
+  'settings.cap.speech': 'grok_speak: text to speech, saved as MP3. Not speech recognition.',
+  'settings.cap.status': 'grok_media_status: poll a task and save the result. Does not generate again.',
+  'settings.cap.retry': 'grok_media_retry_download: retry a failed download only.',
+  'settings.cap.list': 'grok_media_list: list media tasks from this session.',
+  'settings.cap.watch': 'Background poll: video jobs are queried after submit. The card does not refresh itself.',
+  'settings.cap.player': 'Playback: MP4, MP3, and WAV open in the sidebar player.',
+  'settings.cap.unsupported': 'Not provided: speech recognition, live voice, and direct OAuth.',
   'settings.summary': 'Grok connection, key, and model parameters',
   'settings.load.missing': 'No saved Grok ByAPI configuration found; showing defaults.',
   'settings.load.failed': 'Failed to read the saved configuration; showing defaults: {message}',
@@ -344,7 +384,7 @@ function SavedFiles({ files, openFile }) {
     style: { ...snap.file, cursor: openFile ? 'pointer' : 'default' },
   }, fileName(file.path))));
 }
-const tools = ['grok_generate_image', 'grok_generate_video', 'grok_speak', 'grok_media_status', 'grok_media_retry_download', 'grok_media_list', 'grok_models'];
+const tools = ['grok_generate_image', 'grok_edit_image', 'grok_generate_video', 'grok_edit_video', 'grok_extend_video', 'grok_speak', 'grok_media_status', 'grok_media_retry_download', 'grok_media_list', 'grok_models'];
 
 export function resultValue(block) {
   try { return JSON.parse((block?.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n')); }
@@ -417,6 +457,8 @@ function keyFailureOf(draft, t) {
 const SIZE_UNITS = { '': 1, k: 1000, m: 1000000 };
 // 官方支持的思考强度：4.7/4.6 含 xhigh，4.5 三档，4.3 另有 none；这里列出全部可选值，勾选即声明。
 const ALL_EFFORTS = EFFORT_ORDER;
+const CHAT_CAPABILITY_KEYS = ['settings.cap.chat', 'settings.cap.models', 'settings.cap.seeMedia'];
+const MEDIA_CAPABILITY_KEYS = ['settings.cap.image', 'settings.cap.imageEdit', 'settings.cap.video', 'settings.cap.videoEdit', 'settings.cap.extend', 'settings.cap.speech', 'settings.cap.status', 'settings.cap.retry', 'settings.cap.list', 'settings.cap.watch', 'settings.cap.player', 'settings.cap.unsupported', 'settings.cap.seeChat'];
 const MEDIA_FIELDS = [
   ['imageModel', 'settings.media.image', ['grok-imagine-image']],
   ['videoModel', 'settings.media.video', ['grok-imagine-video']],
@@ -842,6 +884,15 @@ export function GrokSettings(props) {
     form?.state?.writable === false ? h('p', { role: 'alert', style: ui.alert }, t('settings.writableBlocked')) : null,
     message ? h('p', { role: 'status', style: ui.status }, message) : null);
 }
+function capabilityView(keys, summaryKey) {
+  return function CapabilityView({ view, t = zhT }) {
+    if (view === 'summary') return h('span', null, t(summaryKey));
+    return h('section', { style: ui.card },
+      h('h3', { style: ui.title }, t('settings.capabilities')),
+      h('ul', { style: { margin: 0, paddingLeft: 18, display: 'grid', gap: 6, fontSize: 13, lineHeight: 1.5 } },
+        ...keys.map(key => h('li', { key }, t(key)))));
+  };
+}
 export function apply(ctx) {
   // 字典命名空间：官方 locale 服务可用时注册 zh/en，语言切换后槽位组件自动重渲染。
   if (typeof ctx.locale?.register === 'function') {
@@ -853,8 +904,10 @@ export function apply(ctx) {
   const locale = typeof ctx.locale?.register === 'function' ? 'grokByapi' : undefined;
   const slotOptions = options => (locale ? { ...options, locale } : options);
   const page = props => GrokSettings({ ...props, remote: ctx.remote });
-  // 配置只放插件详情页。组件行不再挂第二份。
+  // 插件页只放连接和模型。能力按组件拆开，同一份说明不再出现三遍。
   ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register(slotOptions({ name: 'plugins.bundle.config', key: PKG_NAME }), page));
+  ctx.slots.inject('plugins.row.config', () => ctx.slots.register(slotOptions({ name: 'plugins.row.config', key: PKG_NAME + '#grok-byapi' }), capabilityView(CHAT_CAPABILITY_KEYS, 'settings.cap.chatSummary')));
+  ctx.slots.inject('plugins.row.config', () => ctx.slots.register(slotOptions({ name: 'plugins.row.config', key: PKG_NAME + '#dsh-grok-imagine' }), capabilityView(MEDIA_CAPABILITY_KEYS, 'settings.cap.mediaSummary')));
   for (const key of tools) ctx.slots.inject('tool.call.toolview', () => ctx.slots.register(slotOptions({ name: 'tool.call.toolview', key }), GrokToolCard));
   ctx.effect(() => ctx.documentPreviews.register({ id: MEDIA_ID, extensions: ['mp4', 'mp3', 'wav'], binaryExtensions: ['mp4', 'mp3', 'wav'], priority: 'extension', title: () => t('media.title'), loading: 'bytes-complete', wrap: false }));
   ctx.slots.inject('sidebar.right.tab.document', () => ctx.slots.register(slotOptions({ name: 'sidebar.right.tab.document', key: MEDIA_ID }), MediaPreview));

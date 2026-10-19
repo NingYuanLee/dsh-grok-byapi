@@ -82,3 +82,70 @@ test('rejects HTML media, unsafe schemes and download size excess', async t => {
   const smaller = new MediaManager({ ...f.options, maxDownloadBytes: 4 }); await smaller.init();
   const tooBig = await smaller.retryDownload(result.id, 's'); assert.equal(tooBig.status, 'download-failed');
 });
+function readBody(req) {
+  return new Promise(resolve => {
+    const parts = [];
+    req.on('data', chunk => parts.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(parts).toString('utf8')));
+  });
+}
+test('image edit posts once to the edits endpoint', async t => {
+  let edits = 0;
+  const f = await fixture(t, async (req, res) => {
+    if (req.url === '/v1/images/edits') {
+      edits++;
+      const body = JSON.parse(await readBody(req));
+      assert.equal(body.prompt, 'add a hat');
+      assert.equal(body.images[0].url, 'https://cdn.example/a.png');
+      json(res, { data: [{ url: 'http://' + req.headers.host + '/image' }] });
+    } else { res.writeHead(200, { 'content-type': 'image/png' }); res.end(png); }
+  });
+  const result = await f.manager.editImage({ model: 'image', prompt: 'add a hat', image_url: 'https://cdn.example/a.png' }, 's');
+  assert.equal(result.status, 'saved');
+  assert.equal(edits, 1);
+  await assert.rejects(() => f.manager.editImage({ model: 'image', prompt: 'add a hat' }, 's'));
+  assert.equal(edits, 1);
+});
+test('video edit, extend, and image-to-video keep one submission each', async t => {
+  const seen = [];
+  const f = await fixture(t, async (req, res) => {
+    if (req.method === 'POST') {
+      const body = JSON.parse(await readBody(req));
+      seen.push({ url: req.url, body });
+      json(res, { request_id: 'remote-' + seen.length });
+    } else if (req.url.startsWith('/v1/videos/')) json(res, { status: 'done', progress: 100, video: { url: 'http://' + req.headers.host + '/video' } });
+    else { res.writeHead(200, { 'content-type': 'video/mp4' }); res.end(mp4); }
+  });
+  const edited = await f.manager.editVideo({ model: 'video', prompt: 'add snow', video_url: 'https://cdn.example/v.mp4' }, 's');
+  assert.equal(edited.status, 'generating');
+  assert.equal((await f.manager.poll(edited.id, 's')).status, 'saved');
+  const extended = await f.manager.extendVideo({ model: 'video', prompt: 'zoom out', video_url: 'https://cdn.example/v.mp4', duration: 6 }, 's');
+  assert.equal(extended.remoteId, 'remote-2');
+  const animated = await f.manager.video({ model: 'video', prompt: 'pan', image_url: 'https://cdn.example/still.png' }, 's');
+  assert.equal(animated.status, 'generating');
+  assert.equal(seen[0].url, '/v1/videos/edits');
+  assert.equal(seen[0].body.duration, undefined);
+  assert.equal(seen[1].url, '/v1/videos/extensions');
+  assert.equal(seen[1].body.duration, 6);
+  assert.equal(seen[2].url, '/v1/videos/generations');
+  assert.equal(seen[2].body.image.url, 'https://cdn.example/still.png');
+  assert.equal(seen.length, 3);
+});
+test('background watch saves a generating video without resubmitting', async t => {
+  let posts = 0;
+  const f = await fixture(t, (req, res) => {
+    if (req.url === '/v1/videos/generations') { posts++; json(res, { request_id: 'remote-w' }); }
+    else if (req.url === '/v1/videos/remote-w') json(res, { status: 'done', progress: 100, video: { url: 'http://' + req.headers.host + '/video' } });
+    else { res.writeHead(200, { 'content-type': 'video/mp4' }); res.end(mp4); }
+  });
+  const manager = new MediaManager({ ...f.options, watchDelayMs: 20 });
+  await manager.init();
+  const updates = [];
+  manager.startWatchers(new AbortController().signal, task => updates.push(task.status));
+  const submitted = await manager.video({ model: 'video', prompt: 'motion' }, 's');
+  const deadline = Date.now() + 3000;
+  while (Date.now() < deadline && !updates.includes('saved')) await new Promise(resolve => setTimeout(resolve, 30));
+  assert.equal(manager.get(submitted.id, 's').status, 'saved');
+  assert.equal(posts, 1);
+  assert.ok(updates.includes('saved'));
+});

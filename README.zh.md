@@ -8,7 +8,7 @@
 
 [English](README.md) | 中文
 
-> **早期 alpha（`0.2.0-alpha.2`）**：npm 尚未发布，请从 git 安装（Release tarball 发布后也可用）；建议先用独立测试 profile。实际验收范围见 [VALIDATION.md](VALIDATION.md)，逐版变更见 [CHANGELOG.md](CHANGELOG.md)。
+> **`0.2.0`，npm 频道 `latest`。** 聊天路由依赖 dsh `0.2.1-rc.2` 这一档的适配器注册方式，升级宿主后要重跑集成测试。验收范围见 [VALIDATION.md](VALIDATION.md)。
 
 一个插件、一套网关连接。聊天模型出现在模型选择器里；图片、视频、TTS 模型不进入选择器，改由工具调用。任何聊天模型——Grok 或其他提供方——都能调用这些工具。插件只连接你已有的 Grok 网关（默认 CLIProxyAPI），把调用密钥存进 dsh 凭据服务，生成物保存在本地。它不是 OAuth 客户端，不提供账号或额度，也不读取 Grok CLI 的 OAuth 令牌。
 
@@ -32,19 +32,22 @@
 | 持久媒体任务 | 任务记录按会话隔离，重启后保留。下载先写 `.part`，校验后改名。存储按连接和任务隔离。 |
 | 结果展示 | 工具结果卡片、文件预览，以及 MP4、MP3、WAV 侧栏播放器。 |
 
-插件的两个组件合计注册 7 个工具：
+插件的两个组件合计注册 10 个工具。插件页只放连接和模型；`grok-byapi` 的详情只列对话和模型目录，`dsh-grok-imagine` 的详情只列图片、视频和语音：
 
 | 工具 | 作用 |
 | --- | --- |
 | `grok_models` | 刷新模型目录，按能力分组返回。可选 `verify_key`，用一次 `GET /models` 检查地址与密钥。 |
-| `grok_generate_image` | 生成并保存图片：`prompt`，可选 `model`、`n`（1–4，默认 1）。 |
-| `grok_generate_video` | 提交视频任务：`prompt`，可选 `model`、`duration`（1–15 秒，默认 2）。用 `grok_media_status` 取回。 |
+| `grok_generate_image` | 文生图：`prompt`，可选 `model`、`n`（1–4，默认 1）。 |
+| `grok_edit_image` | 图生图：`prompt`，加 `image_url` / `image_urls`（最多 5 张）或已保存图片任务。 |
+| `grok_generate_video` | 文生视频；带一张 `image_url` 或已保存图片任务时是图生视频。`duration` 1–15 秒，默认 2。 |
+| `grok_edit_video` | 视频生视频：按文字改已有视频（`video_url` 或已保存视频任务）。 |
+| `grok_extend_video` | 从最后一帧延长，并和原片接成一条。 |
 | `grok_speak` | 文字转语音并保存为 MP3：`input`，可选 `model` 和 `voice`。 |
 | `grok_media_list` | 列出当前会话创建过的媒体任务。 |
 | `grok_media_status` | 查询任务状态，就绪时下载保存：`task_id`。 |
 | `grok_media_retry_download` | 只重试下载，不重新生成：`task_id`。 |
 
-尚未实现：图片编辑、视频编辑/延长、后台自动轮询与完成通知、实时任务面板、语音识别、实时语音、直接 OAuth。模型分类是规则推断，不是可用性保证；模型数量取决于你的网关。
+不提供：语音识别、实时语音、直接 OAuth、实时任务面板。视频会在本进程后台查询，但结果卡片不会自己刷新。模型分类是规则推断，不是可用性保证。
 
 ## 兼容性
 
@@ -59,13 +62,20 @@
 
 ## 安装
 
-> npm 尚未发布：`npm install dsh-grok-byapi` 和 `dsh plugin add dsh-grok-byapi` 目前都不可用。请从下面三种方式选一种。
-
-**从 git 安装，固定 tag（推荐）：**
+**从 npm 安装（推荐）：**
 
 ```powershell
 dsh --profile grok-byapi-test --from-default-profile web --dump-config
-dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0-alpha.2"
+dsh plugin --profile grok-byapi-test add dsh-grok-byapi
+```
+
+这会安装当前 `latest`，也就是 `0.2.0`。
+
+**从 git 安装，固定 tag：**
+
+```powershell
+dsh --profile grok-byapi-test --from-default-profile web --dump-config
+dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh-grok-byapi.git#v0.2.0"
 ```
 
 `--dump-config` 会基于默认 profile 创建新 profile、打印合并后的配置，不启动服务。`dsh plugin add` 会把插件记进该 profile 的 `dsh.profile.bundles`，不需要手动改 YAML。仓库没有 `prepare` / `postinstall` 脚本，安装期不执行构建代码，也不需要 `allowBuilds`。
@@ -73,7 +83,7 @@ dsh plugin --profile grok-byapi-test add "git+https://github.com/NingYuanLee/dsh
 **GitHub Release tarball（发布后可用）：**
 
 ```powershell
-dsh plugin --profile grok-byapi-test add "https://github.com/NingYuanLee/dsh-grok-byapi/releases/download/v0.2.0-alpha.2/dsh-grok-byapi-0.2.0-alpha.2.tgz"
+dsh plugin --profile grok-byapi-test add "https://github.com/NingYuanLee/dsh-grok-byapi/releases/download/v0.2.0/dsh-grok-byapi-0.2.0.tgz"
 ```
 
 **本地源码（开发调试）：**
@@ -102,7 +112,7 @@ dsh --profile grok-byapi-test --no-open
 dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 ```
 
-移除后，插件贡献的 layer 从 profile 消失：提供方、7 个工具和设置页都不再出现。生成物与任务记录不会被删除，需要的话手动清理数据目录。为插件创建的凭据也不会随卸载删除，不再需要时在 dsh 里删掉。
+移除后，插件贡献的 layer 从 profile 消失：提供方、10 个工具和设置页都不再出现。生成物与任务记录不会被删除，需要的话手动清理数据目录。为插件创建的凭据也不会随卸载删除，不再需要时在 dsh 里删掉。
 
 ## 配置
 
@@ -168,7 +178,7 @@ dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 
 | 现象 | 处理 |
 | --- | --- |
-| `dsh plugin add` 失败或报 404 | npm 尚未发布，改用上面的 git 或 tarball 方式。 |
+| `dsh plugin add` 失败或报 404 | 确认安装的是 npm 上的 `dsh-grok-byapi@0.2.0`，或改用上面的 git / tarball。 |
 | 插件列表里有，但加载不成功 | dsh 不在 `>=0.2.1-rc.2 <0.3.0-0` 范围内，升级到 0.2.x 构建。 |
 | 设置页报 401 或 403 | 密钥或基础地址不对，重新保存密钥并检查 `/v1` 后缀。 |
 | 连接被拒或超时 | 网关没启动或不可达；`127.0.0.1` 指运行 dsh 的电脑。 |
@@ -183,7 +193,7 @@ dsh plugin --profile grok-byapi-test remove dsh-grok-byapi
 
 ```bash
 npm install --ignore-scripts
-npm test             # 64 项自动测试
+npm test             # 70 项自动测试
 npm run check        # 源文件语法检查
 npm run build        # 由 src/client.js 重新生成 lib/client.js
 npm pack --dry-run
