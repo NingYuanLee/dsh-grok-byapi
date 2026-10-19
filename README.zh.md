@@ -24,6 +24,10 @@
 | --- | --- |
 | ![桌面上卷起的纸和一颗映着青光的玻璃球](docs/assets/demo-still.jpg) | ![同一题材的暖色灯和一道离开玻璃球的光弧](docs/assets/demo-warm.jpg) |
 
+下面这条是 `grok_generate_video` 生成的 4 秒片子，转成了动图。它不是上面静帧的逐帧动画：
+
+![纸张缓缓卷起，青光从玻璃球飘过桌面](docs/assets/demo-motion.gif)
+
 ## 功能
 
 | 方面 | 当前实现范围 |
