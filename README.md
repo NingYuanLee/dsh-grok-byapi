@@ -205,7 +205,35 @@ npm run build        # rebuilds lib/client.js from src/client.js
 npm pack --dry-run
 ```
 
-CI (`.github/workflows/ci.yml`) runs on Linux and Windows with Node 22.19 and 24: install, tests, syntax checks, build, a check that `lib/client.js` matches the build output, and a pack dry run. Pushing a `v*` tag runs `.github/workflows/release.yml`, which verifies that the tag matches `package.json`, repeats the checks, attaches the packed tarball to a GitHub Release, and publishes to npm only if an `NPM_TOKEN` secret is configured. npm publishing is currently blocked, so releases are git/tarball only. See [ROADMAP.md](ROADMAP.md) for planned work and [CHANGELOG.md](CHANGELOG.md) for changes.
+CI (`.github/workflows/ci.yml`) runs on Linux and Windows with Node 22.19 and 24: install, tests, syntax checks, build, a check that `lib/client.js` matches the build output, and a pack dry run. Pushing a `v*` tag runs `.github/workflows/release.yml`, which verifies that the tag matches `package.json`, repeats the checks, attaches the packed tarball to a GitHub Release, and publishes to npm through trusted publishing (OIDC) — the workflow holds no npm token. The package is published on npm (`0.2.1` is the current `latest`), and every release is available there as well as from git/tarball. See [Publishing](#publishing) for the one-time npmjs.com registration and for publishing from your own machine. See [ROADMAP.md](ROADMAP.md) for planned work and [CHANGELOG.md](CHANGELOG.md) for changes.
+
+## Publishing
+
+CI publishes to npm with trusted publishing (OIDC). The workflow stores no npm token: GitHub hands the runner a short-lived OIDC token and npm exchanges it for a publish token, so there is no long-lived secret to keep or leak.
+
+Register the trusted publisher once, in npmjs.com → the package → Settings → Trusted publishing:
+
+| Field | Value |
+| --- | --- |
+| Organization or user | `NingYuanLee` |
+| Repository | `dsh-grok-byapi` |
+| Workflow filename | `release.yml` — the file name only, including `.yml`, matched case-sensitively |
+| Environment name | leave empty |
+
+npm 11.16 and newer can register the same relationship from the command line (run `npm login` first):
+
+```bash
+npm trust github dsh-grok-byapi --file release.yml --repo NingYuanLee/dsh-grok-byapi --allow-publish
+```
+
+Publishing from your own machine follows npm's official local flow: log in through the browser for a session token that is valid for two hours, then publish with the one-time code from your authenticator.
+
+```bash
+npm login --auth-type=web
+npm publish --otp <code>
+```
+
+Keep every token and one-time code out of the repository, logs, and commit messages. npm does not verify a trusted publisher registration when it is saved: a wrong repository or workflow filename only surfaces at publish time as `ENEEDAUTH`.
 
 ## Community, license, and disclaimer
 

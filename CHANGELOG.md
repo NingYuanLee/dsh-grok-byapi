@@ -4,6 +4,10 @@
 
 ## 未发布（Unreleased）
 
+- 发布流程改用 npm 官方的 trusted publishing (OIDC)：`.github/workflows/release.yml` 不再读取仓库里的 npm 令牌 secret，改为申请 `id-token: write` 权限后直接 `npm publish`，删掉「没有令牌就跳过发布」的分支。
+- README 与本文档补上 trusted publisher 的登记字段（Organization/user、Repository、Workflow filename、Environment 留空）与 `npm trust github` 命令行登记方式，以及本地手动发布方式（`npm login --auth-type=web` 后 `npm publish --otp`）。
+- 修正 npm 发布状态的过时说明：本包已发布到 npm，`latest` 为 `0.2.1`，发布不再受阻。
+
 ## 0.2.2 — 2026-11-06
 
 - 统一 README 徽章行（CI、npm、MIT 许可、Node、dsh 区间、`dsh-plugin` topic、GitHub tag、powered by dsh），让徽章与 `engines.dsh` 声明一致。兼容区间本身不变。
@@ -59,7 +63,7 @@
 - 打包修正：`files` 由 `locale/*.json` 改为 `locale`，npm/Git 安装包含子路径的 `locale/imagine/*.json`；补入 `docs/assets`、`screenshots.json`、`SECURITY.md` 相关文件。
 - README 重写为中英双语（英文主文档 + `README.zh.md`），加入 banner、截图、兼容矩阵、安装/更新/卸载、配置、安全与隐私、常见故障与安装成功判定。
 - 新增 `SECURITY.md`、Issue/PR 模板、`screenshots.json`、`market/index.json` 市场索引（format 1）与 `npm run validate:market` 校验脚本。
-- 新增 tag 发布工作流：校验 tag 与版本一致、跑测试与构建、生成 GitHub Release 并附加 `npm pack` 产物；配置 `NPM_TOKEN` 后同时发布 npm。
+- 新增 tag 发布工作流：校验 tag 与版本一致、跑测试与构建、生成 GitHub Release 并附加 `npm pack` 产物；配置 npm 发布凭据后同时发布 npm。
 - CI 增加市场索引校验；仓库 topic 补充 `cordis`、`llm-provider`、`image-generation`、`video-generation`、`text-to-speech`。
 - 设置页交互与配置调整：
 

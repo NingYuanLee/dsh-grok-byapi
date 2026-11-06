@@ -205,7 +205,35 @@ npm run build        # 由 src/client.js 重新生成 lib/client.js
 npm pack --dry-run
 ```
 
-CI（`.github/workflows/ci.yml`）在 Linux 与 Windows 上用 Node 22.19 与 24 运行：安装、测试、语法检查、构建、校验 `lib/client.js` 与构建产物一致、打包预演。推送 `v*` tag 会触发 `.github/workflows/release.yml`：校验 tag 与 `package.json` 版本一致、重跑检查、把打包产物附到 GitHub Release，并且只在配置了 `NPM_TOKEN` secret 时发布到 npm。npm 发布目前受阻，所以目前以 git / tarball 分发。规划见 [ROADMAP.md](ROADMAP.md)，变更见 [CHANGELOG.md](CHANGELOG.md)。
+CI（`.github/workflows/ci.yml`）在 Linux 与 Windows 上用 Node 22.19 与 24 运行：安装、测试、语法检查、构建、校验 `lib/client.js` 与构建产物一致、打包预演。推送 `v*` tag 会触发 `.github/workflows/release.yml`：校验 tag 与 `package.json` 版本一致、重跑检查、把打包产物附到 GitHub Release，并通过 trusted publishing (OIDC) 发布到 npm——workflow 里不存放任何 npm 令牌。本包已发布到 npm（当前 `latest` 为 `0.2.1`），每个版本在 npm 与 git / tarball 上都拿得到。一次性登记方式与本地手动发布见 [发布](#发布)。规划见 [ROADMAP.md](ROADMAP.md)，变更见 [CHANGELOG.md](CHANGELOG.md)。
+
+## 发布
+
+CI 用 trusted publishing (OIDC) 发布到 npm。workflow 不保存 npm 令牌：GitHub 把一次性 OIDC 令牌交给 runner，npm 用它换取发布令牌，因此没有需要长期保管、可能泄漏的凭据。
+
+先在 npmjs.com → 该包 → Settings → Trusted publishing 登记一次：
+
+| 字段 | 取值 |
+| --- | --- |
+| Organization or user | `NingYuanLee` |
+| Repository | `dsh-grok-byapi` |
+| Workflow filename | `release.yml`——只写文件名，含 `.yml`，大小写完全一致 |
+| Environment name | 留空 |
+
+npm 11.16 及以上可以直接在命令行登记同样的关系（先执行 `npm login`）：
+
+```bash
+npm trust github dsh-grok-byapi --file release.yml --repo NingYuanLee/dsh-grok-byapi --allow-publish
+```
+
+在本地手动发布，按 npm 官方的本地流程：先用浏览器登录拿到两小时有效的会话令牌，再带上验证器里的一次性验证码发布。
+
+```bash
+npm login --auth-type=web
+npm publish --otp <code>
+```
+
+任何令牌和一次性验证码都不要写进仓库、日志或提交信息。npm 保存登记时不做校验：仓库名或 workflow 文件名填错，只会在发布时报 `ENEEDAUTH`。
 
 ## 社区、许可与免责声明
 
