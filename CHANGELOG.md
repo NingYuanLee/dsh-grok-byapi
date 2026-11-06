@@ -4,6 +4,10 @@
 
 ## 未发布（Unreleased）
 
+## 0.2.2 — 2026-11-06
+
+- 统一 README 徽章行（CI、npm、MIT 许可、Node、dsh 区间、`dsh-plugin` topic、GitHub tag、powered by dsh），让徽章与 `engines.dsh` 声明一致。兼容区间本身不变。
+
 ## 0.2.1 — 2026-10-19
 
 - 组件详情里的每条能力改成写明输入和产出，不再用一句话带过。

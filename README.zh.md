@@ -4,7 +4,7 @@
 
 在 DeepSeek Harness 中通过你自己的 OpenAI 兼容 Grok 网关使用 Grok：原生聊天提供方，外加图片、视频和语音合成工具。
 
-[![CI](https://github.com/NingYuanLee/dsh-grok-byapi/actions/workflows/ci.yml/badge.svg)](https://github.com/NingYuanLee/dsh-grok-byapi/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Node >=22.19](https://img.shields.io/badge/node-%3E%3D22.19.0-339933.svg)](#兼容性) [![dsh 0.2.x](https://img.shields.io/badge/dsh-0.2.x-blue.svg)](#兼容性) [![topic: dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-6f42c1.svg)](https://github.com/topics/dsh-plugin) [![GitHub tag](https://img.shields.io/github/v/tag/NingYuanLee/dsh-grok-byapi?label=tag&include_prereleases)](https://github.com/NingYuanLee/dsh-grok-byapi/tags)
+[![CI](https://github.com/NingYuanLee/dsh-grok-byapi/actions/workflows/ci.yml/badge.svg)](https://github.com/NingYuanLee/dsh-grok-byapi/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/dsh-grok-byapi.svg)](https://www.npmjs.com/package/dsh-grok-byapi) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Node >=22.19](https://img.shields.io/badge/node-%3E%3D22.19.0-339933.svg)](#兼容性) [![dsh](https://img.shields.io/badge/dsh-%3E%3D0.2.1--rc.2%20%3C0.3.0--0-6f42c1)](#兼容性) [![topic: dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-6f42c1.svg)](https://github.com/topics/dsh-plugin) [![GitHub tag](https://img.shields.io/github/v/tag/NingYuanLee/dsh-grok-byapi?label=tag&include_prereleases)](https://github.com/NingYuanLee/dsh-grok-byapi/tags) [![powered by dsh](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 
 [English](README.md) | 中文
 
